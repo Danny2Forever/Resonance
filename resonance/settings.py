@@ -23,7 +23,7 @@ load_dotenv(BASE_DIR / ".env")
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-bjun9xicx=8)v_hrev1yhr81k&l=cl(kfel9$kf6-j9%x7^vh&'
+DJANGO_SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -35,6 +35,7 @@ ALLOWED_HOSTS = []
 SPOTIPY_CLIENT_ID = os.getenv("SPOTIPY_CLIENT_ID")
 SPOTIPY_CLIENT_SECRET = os.getenv("SPOTIPY_CLIENT_SECRET")
 SPOTIPY_REDIRECT_URI = os.getenv("SPOTIPY_REDIRECT_URI")
+SPOTIFY_SCOPES = os.getenv("SPOTIFY_SCOPES")
 
 # Application definition
 INSTALLED_APPS = [
