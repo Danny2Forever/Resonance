@@ -14,9 +14,17 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
+# spotapp/urls.py
 from django.urls import path
+from users import views
+from django.conf.urls.static import static
+from django.conf import settings
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('login/', views.spotify_login, name='spotify_login'),
+    path('callback/', views.spotify_callback, name='spotify_callback'),
+    path('profile/<str:spotify_id>/', views.profile_detail, name='profile_detail'),
+    path('profile/<str:spotify_id>/edit/', views.edit_profile, name='edit_profile'),
+    path('logout/', views.spotify_logout, name='spotify_logout'),
 ]
+

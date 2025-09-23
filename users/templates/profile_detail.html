@@ -1,0 +1,29 @@
+
+{% extends 'layout.html' %}
+{% load static %}
+  {% block title %}{{ user.username }}'s Profile{% endblock %}
+    {% block head %}
+    <h1>{{ user.username }}</h1>
+    {% endblock %}
+    {% block content %}
+      <p>Email: {{ user.email }}</p>
+      <p>Bio: {{ user.bio }}</p>
+      <p>Favorite song: {{ user. }}</p>
+
+      <h1>Your Top Tracks</h1>
+      <ul>
+          {% for track in tracks %}
+              <li>
+                  <img src="{{ track.image }}" width="64" height="64">
+                  <a href="{{ track.url }}" target="_blank">{{ track.name }}</a> by {{ track.artists }} ({{ track.album }})
+              </li>
+          {% empty %}
+              <li>No top tracks found.</li>
+          {% endfor %}
+      </ul>
+
+      {% if current_user.spotify_id == user.spotify_id or current_user.is_admin %}
+          <a href="{% url 'edit_profile' user.spotify_id %}">Edit Profile</a>
+          <a href="{% url 'spotify_logout' %}">Logout</a>
+      {% endif %}
+    {% endblock %}
