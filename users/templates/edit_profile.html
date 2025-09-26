@@ -1,0 +1,36 @@
+{% extends 'layout.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.username|as_crispy_field }}
+  {{ form.email|as_crispy_field }}
+  {{ form.bio|as_crispy_field }}
+
+  <div class="form-control">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Profile image</label>
+
+        <label for="{{ form.profile_picture.id_for_label }}" class="inline-block cursor-pointer px-5 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-400">Choose Image</label>
+
+        {{ form.profile_picture }}
+
+        <img id="preview" class="m-auto mt-3 rounded-lg border max-h-64 object-contain hidden" alt="Preview" />
+      </div>
+  <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Save</button>
+
+</form>
+{% endblock %}
+{% block script %}
+<script>
+    // ใช้ id เหมือนที่ตั้งกับ label
+    const image = document.getElementById('{{ form.profile_picture.id_for_label }}')
+    const preview = document.getElementById('preview')
+    image.addEventListener('change', () => {
+      const [file] = image.files
+      if (file) {
+        preview.src = URL.createObjectURL(file)
+        preview.classList.remove('hidden')
+      }
+    })
+  </script>
+{% endblock %}

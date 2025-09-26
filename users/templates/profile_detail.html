@@ -1,0 +1,21 @@
+
+{% extends 'layout.html' %}
+{% load static %}
+  {% block title %}{{ user.username }}'s Profile{% endblock %}
+    {% block head %}
+    {% endblock %}
+    {% block content %}
+    {{ user.username }}
+
+      <img style="height: 100px; width: 100px;" 
+      src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}/media/404/bf8ad1d61e560b61c6dd1b2e0a363724.jpg{% endif %}" 
+      alt="">
+      <p>Email: {{ user.email }}</p>
+      <p>Bio: {{ user.bio }}</p>
+      <p>Favorite song: {{ user. }}</p>
+      
+      {% if current_user.spotify_id == user.spotify_id or current_user.is_admin %}
+          <a href="{% url 'edit_profile' user.spotify_id %}">Edit Profile</a>
+          <a href="{% url 'spotify_logout' %}">Logout</a>
+      {% endif %}
+    {% endblock %}

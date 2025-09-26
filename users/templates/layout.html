@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}My site{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    {% block head %}{% endblock %}
+  </head>
+  <body class="bg-gray-50 text-gray-900">
+    <nav class="bg-white shadow p-4">
+      <div class="container mx-auto flex justify-between">
+        <a href="/" class="font-bold text-lg">Resonance</a>
+        <div class="space-x-4">
+          {% if current_user %}
+            <!-- Match path -->
+          <a href="/" class="text-gray-700 hover:text-blue-600">Match</a>
+            <!-- Profile path if have no current user go login-->
+          <a
+            href="{% url 'profile_detail' current_user.spotify_id %}"
+            class="text-gray-700 hover:text-blue-600"
+            >Profile</a
+          >                                                                
+          {% else %}
+            <!-- Match path -->
+          <a href="{% url 'spotify_login' %}" class="text-gray-700 hover:text-blue-600">Match</a>
+            <!-- Profile path if have no current user go login-->
+          <a
+            href="{% url 'spotify_login' %}"
+            class="text-gray-700 hover:text-blue-600"
+            >Profile</a
+          >       
+          {% endif %}
+        </div>
+      </div>
+    </nav>
+
+    <main class="container mx-auto p-6">{% block content %}{% endblock %}</main>
+
+    {% block script %}{% endblock %}
+  </body>
+</html>
