@@ -19,12 +19,13 @@ from django.urls import path
 from users import views
 from django.conf.urls.static import static
 from django.conf import settings
+from users.views import *
 
 urlpatterns = [
-    path('login/', views.spotify_login, name='spotify_login'),
-    path('callback/', views.spotify_callback, name='spotify_callback'),
-    path('profile/<str:spotify_id>/', views.profile_detail, name='profile_detail'),
-    path('profile/<str:spotify_id>/edit/', views.edit_profile, name='edit_profile'),
-    path('logout/', views.spotify_logout, name='spotify_logout'),
+    path('login/', spotify_login.as_view(), name='spotify_login'),
+    path('callback/', spotify_callback.as_view(), name='spotify_callback'),
+    path('profile/<str:spotify_id>/', profile_detail.as_view(), name='profile_detail'),
+    path('profile/<str:spotify_id>/edit/', edit_profile.as_view(), name='edit_profile'),
+    path('logout/', spotify_logout.as_view(), name='spotify_logout'),
 ]
 

@@ -1,4 +1,4 @@
-# spotapp/forms.py
+
 from django import forms
 from .models import User
 
@@ -11,3 +11,9 @@ class UserForm(forms.ModelForm):
             'profile_picture',
             'bio'
         ]
+        widgets = {
+            'bio': forms.Textarea(attrs={
+                'rows': 6,
+                'placeholder': 'Write your bio ...',
+            }),
+        }
