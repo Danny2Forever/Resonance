@@ -14,7 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-# spotapp/urls.py
+
 from django.urls import path
 from users import views
 from django.conf.urls.static import static
@@ -29,3 +29,5 @@ urlpatterns = [
     path('logout/', spotify_logout.as_view(), name='spotify_logout'),
 ]
 
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

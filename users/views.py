@@ -7,17 +7,27 @@ from .models import User
 from .forms import UserForm
 
 # Login
-class spotify_login(View):
+class spotify_login(View): # ถ้าผู้ใช้ได้ login แล้ว (sessionของ spotify id ยังอยู่) เมื่อเรียกหา path login จะถูกไล่ไป profile_detail
     def get(self, request):
-        auth_url = (
-            "https://accounts.spotify.com/authorize"
-            f"?response_type=code"
-            f"&client_id={settings.SPOTIFY_CLIENT_ID}"
-            f"&scope={settings.SPOTIFY_SCOPES}"
-            f"&redirect_uri={settings.SPOTIFY_REDIRECT_URI}"
-            f"&show_dialog=true"
-        )
-        return render(request, "login.html", {"spotify_auth_url": auth_url})
+        current_id = request.session.get("spotify_id")
+        current_user = User.objects.filter(spotify_id=current_id).first()
+        if not current_user:
+            auth_url = (
+                "https://accounts.spotify.com/authorize"
+                f"?response_type=code"
+                f"&client_id={settings.SPOTIFY_CLIENT_ID}"
+                f"&scope={settings.SPOTIFY_SCOPES}"
+                f"&redirect_uri={settings.SPOTIFY_REDIRECT_URI}"
+                f"&show_dialog=true"
+            )
+            return render(request, "login.html", {"spotify_auth_url": auth_url})
+        else:
+            user = get_object_or_404(User, spotify_id=current_user.spotify_id)
+            return render(request, 'profile_detail.html', {
+                'user': user,
+                'current_user': current_user,
+
+            })
 
 # Callback
 class spotify_callback(View):
@@ -59,7 +69,7 @@ class spotify_callback(View):
             user.access_token = access_token
             user.refresh_token = refresh_token
             user.save()
-            request.session['spotify_id'] = user.spotify_id
+            request.session['spotify_id'] = user.spotify_id # เก็บ spotify_id ลง session
             return redirect('profile_detail', spotify_id=user.spotify_id)
         except User.DoesNotExist:
             user = User.objects.create(
@@ -115,7 +125,8 @@ class profile_detail(View):
         user = get_object_or_404(User, spotify_id=spotify_id)
         return render(request, 'profile_detail.html', {
             'user': user,
-            'current_user': current_user
+            'current_user': current_user,
+
         })
 
 # Logout

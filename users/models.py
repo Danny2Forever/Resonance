@@ -1,10 +1,11 @@
 from django.db import models
 
+
 class User(models.Model):
     spotify_id = models.CharField(max_length=255)
     username = models.CharField(max_length=255)
     email = models.CharField(max_length=255)
-    profile_picture = models.ImageField(upload_to='images/profile_img/', blank=True, null=True)
+    profile_picture = models.FileField(upload_to='profile_image/%Y/%m/%d/', blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(auto_now=True)

@@ -16,4 +16,6 @@ class UserForm(forms.ModelForm):
                 'rows': 6,
                 'placeholder': 'Write your bio ...',
             }),
+            'profile_picture' : forms.FileInput(attrs={"class":"hidden"})
         }
+        
