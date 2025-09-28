@@ -5,32 +5,36 @@ from django.http import HttpResponse
 from django.views import View
 from .models import User
 from .forms import UserForm
+from spotify.refresh import refresh_user_profile
+
+import spotipy
+from spotipy.oauth2 import SpotifyOAuth
 
 # Login
-class spotify_login(View): # ถ้าผู้ใช้ได้ login แล้ว (sessionของ spotify id ยังอยู่) เมื่อเรียกหา path login จะถูกไล่ไป profile_detail
+class SpotifyLoginView(View): # ถ้าผู้ใช้ได้ login แล้ว (sessionของ spotify id ยังอยู่) เมื่อเรียกหา path login จะถูกไล่ไป profile_detail
     def get(self, request):
-        current_id = request.session.get("spotify_id")
-        current_user = User.objects.filter(spotify_id=current_id).first()
-        if not current_user:
-            auth_url = (
-                "https://accounts.spotify.com/authorize"
-                f"?response_type=code"
-                f"&client_id={settings.SPOTIFY_CLIENT_ID}"
-                f"&scope={settings.SPOTIFY_SCOPES}"
-                f"&redirect_uri={settings.SPOTIFY_REDIRECT_URI}"
-                f"&show_dialog=true"
-            )
-            return render(request, "login.html", {"spotify_auth_url": auth_url})
-        else:
+        spotify_id = request.session.get("spotify_id") # เช็ค session
+        current_user = User.objects.filter(spotify_id=spotify_id).first()
+        if current_user:
             user = get_object_or_404(User, spotify_id=current_user.spotify_id)
-            return render(request, 'profile_detail.html', {
-                'user': user,
-                'current_user': current_user,
-
+            return render(request, "profile_detail.html", {
+                "user": user,
+                "current_user": current_user,
             })
+        # ถ้า user ยังไม่ login สร้าง auth URL ผ่าน SpotifyOAuth
+        sp_oauth = SpotifyOAuth(
+            client_id=settings.SPOTIFY_CLIENT_ID,
+            client_secret=settings.SPOTIFY_CLIENT_SECRET,
+            redirect_uri=settings.SPOTIFY_REDIRECT_URI,
+            scope=settings.SPOTIFY_SCOPES,
+            show_dialog=True
+        )
+        auth_url = sp_oauth.get_authorize_url()
+
+        return render(request, "login.html", {"spotify_auth_url": auth_url})
 
 # Callback
-class spotify_callback(View):
+class SpotifyCallbackView(View):
     def get(self, request):
         code = request.GET.get('code')
         if not code:
@@ -54,12 +58,17 @@ class spotify_callback(View):
         access_token = tokens.get('access_token')
         refresh_token = tokens.get('refresh_token')
 
-        headers = {"Authorization": f"Bearer {access_token}"}
-        profile_resp = requests.get("https://api.spotify.com/v1/me", headers=headers)
-        if profile_resp.status_code != 200:
-            return HttpResponse(f"Spotify API error: {profile_resp.status_code} - {profile_resp.text}")
+        # แบบไม่ใช้ spotipy
+        # headers = {"Authorization": f"Bearer {access_token}"}
+        # profile_resp = requests.get("https://api.spotify.com/v1/me", headers=headers)
+        # if profile_resp.status_code != 200:
+        #     return HttpResponse(f"Spotify API error: {profile_resp.status_code} - {profile_resp.text}")
 
-        profile = profile_resp.json()
+
+        # ใช้ Spotipy ดึงข้อมูลแทน requests.get
+        sp = spotipy.Spotify(auth=access_token)
+        profile = sp.current_user()
+
         spotify_id = profile.get('id')
         username = profile.get('display_name', spotify_id)
         email = profile.get('email', '')
@@ -69,6 +78,7 @@ class spotify_callback(View):
             user.access_token = access_token
             user.refresh_token = refresh_token
             user.save()
+            refresh_user_profile(user)
             request.session['spotify_id'] = user.spotify_id # เก็บ spotify_id ลง session
             return redirect('profile_detail', spotify_id=user.spotify_id)
         except User.DoesNotExist:
@@ -79,11 +89,13 @@ class spotify_callback(View):
                 access_token=access_token,
                 refresh_token=refresh_token
             )
+
+        refresh_user_profile(user)
         request.session['spotify_id'] = user.spotify_id
         return redirect('edit_profile', spotify_id=user.spotify_id)
 
 # Edit profile
-class edit_profile(View):
+class EditProfileView(View):
     def valid_user(self, request, spotify_id):
         user = get_object_or_404(User, spotify_id=spotify_id)
 
@@ -118,7 +130,7 @@ class edit_profile(View):
         return render(request, 'edit_profile.html', {'form': form, 'current_user': current_user})
 
 # Show profile
-class profile_detail(View):
+class ProfileDetailView(View):
     def get(self, request, spotify_id):
         current_id = request.session.get("spotify_id")
         current_user = User.objects.filter(spotify_id=current_id).first()
@@ -130,7 +142,7 @@ class profile_detail(View):
         })
 
 # Logout
-class spotify_logout(View):
+class SpotifyLogoutView(View):
     def get(self, request):
         request.session.flush()
         return redirect('spotify_login')

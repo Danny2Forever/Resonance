@@ -46,6 +46,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'users',
     'resonance',
+    'chat',
+    'matching',
+    'spotify',
     "crispy_forms",
     "crispy_tailwind",
 

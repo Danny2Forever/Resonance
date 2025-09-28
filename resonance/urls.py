@@ -22,11 +22,12 @@ from django.conf import settings
 from users.views import *
 
 urlpatterns = [
-    path('login/', spotify_login.as_view(), name='spotify_login'),
-    path('callback/', spotify_callback.as_view(), name='spotify_callback'),
-    path('profile/<str:spotify_id>/', profile_detail.as_view(), name='profile_detail'),
-    path('profile/<str:spotify_id>/edit/', edit_profile.as_view(), name='edit_profile'),
-    path('logout/', spotify_logout.as_view(), name='spotify_logout'),
+    path('login/', SpotifyLoginView.as_view(), name='spotify_login'),
+    path('callback/', SpotifyCallbackView.as_view(), name='spotify_callback'),
+    path('profile/<str:spotify_id>/', ProfileDetailView.as_view(), name='profile_detail'),
+    path('profile/<str:spotify_id>/edit/', EditProfileView.as_view(), name='edit_profile'),
+    path('logout/', SpotifyLogoutView.as_view(), name='spotify_logout'),
+
 ]
 
 if settings.DEBUG:
