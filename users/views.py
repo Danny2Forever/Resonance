@@ -14,7 +14,7 @@ from spotipy.oauth2 import SpotifyOAuth
 class SpotifyLoginView(View): # ถ้าผู้ใช้ได้ login แล้ว (sessionของ spotify id ยังอยู่) เมื่อเรียกหา path login จะถูกไล่ไป profile_detail
     def get(self, request):
         spotify_id = request.session.get("spotify_id") # เช็ค session
-        current_user = User.objects.filter(spotify_id=spotify_id).first()
+        current_user = User.objects.filter(spotify_id=spotify_id).first() # หาไม่ใช้ filter มีโอกาส session ขาดหาย
         if current_user:
             user = get_object_or_404(User, spotify_id=current_user.spotify_id)
             return render(request, "profile_detail.html", {
@@ -63,7 +63,6 @@ class SpotifyCallbackView(View):
         # profile_resp = requests.get("https://api.spotify.com/v1/me", headers=headers)
         # if profile_resp.status_code != 200:
         #     return HttpResponse(f"Spotify API error: {profile_resp.status_code} - {profile_resp.text}")
-
 
         # ใช้ Spotipy ดึงข้อมูลแทน requests.get
         sp = spotipy.Spotify(auth=access_token)
@@ -138,7 +137,6 @@ class ProfileDetailView(View):
         return render(request, 'profile_detail.html', {
             'user': user,
             'current_user': current_user,
-
         })
 
 # Logout

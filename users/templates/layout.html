@@ -14,15 +14,15 @@
         <div class="space-x-4">
           {% if current_user %}
             <!-- Match path -->
-          <a href="/" class="text-gray-700 hover:text-blue-600">Match</a>
-            <!-- Profile path if have no current user go login-->
+          <a href="{% url 'match_user' %}" class="text-gray-700 hover:text-blue-600">Match</a>
+            <!-- Profile path-->
           <a
             href="{% url 'profile_detail' current_user.spotify_id %}"
             class="text-gray-700 hover:text-blue-600"
             >Profile</a
           >                                                                
           {% else %}
-            <!-- Match path -->
+            <!-- Match path if have no current user go login-->
           <a href="{% url 'spotify_login' %}" class="text-gray-700 hover:text-blue-600">Match</a>
             <!-- Profile path if have no current user go login-->
           <a
