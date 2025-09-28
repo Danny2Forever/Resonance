@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'resonance',
     'chat',
     'matching',
+    'spotify',
     "crispy_forms",
     "crispy_tailwind",
 

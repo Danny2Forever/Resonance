@@ -1,5 +1,5 @@
 from django.db import models
-from .models import User
+from users.models import User
 
 # music profile cach
 class UserMusicProfile(models.Model):
@@ -10,4 +10,4 @@ class UserMusicProfile(models.Model):
     last_refreshed = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"MusicProfile of {self.user.username}"
+        return f"MusicProfile of {self.user.spotify_id}"
