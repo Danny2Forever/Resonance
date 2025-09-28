@@ -29,6 +29,7 @@ urlpatterns = [
     path('profile/<str:spotify_id>/edit/', EditProfileView.as_view(), name='edit_profile'),
     path('logout/', SpotifyLogoutView.as_view(), name='spotify_logout'),
     path('match/', MatchUserView.as_view(), name='match_user'),
+    path('swiped/', SwipeActionView.as_view(), name='swipe_action'),
 
 ]
 

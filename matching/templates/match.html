@@ -3,12 +3,17 @@
 {% block content %}
 {% if next_user %}
   <div>
-    <h3>{{ next_user.username }}</h3>
     <img src="{{ next_user.profile_image.url }}" alt="{{ next_user.username }}">
-    <button>Like</button>
-    <button>Pass</button>
+    <h3>{{ next_user.username }}</h3>
+    <form method="post" action="{% url 'swipe_action' %}">
+      {% csrf_token %}
+      <input type="hidden" name="swiped_id" value="{{ next_user.id }}">
+      <button type="submit" name="action" value="like">👍 Like</button>
+      <button type="submit" name="action" value="pass">👎 Pass</button>
+    </form>
   </div>
 {% else %}
   <p>No more users to swipe.</p>
 {% endif %}
+
 {% endblock %}
