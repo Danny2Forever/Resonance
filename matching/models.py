@@ -23,16 +23,3 @@ class Match(models.Model):
     similarity_score = models.FloatField()
     matched_at = models.DateTimeField(auto_now_add=True)
     mutual_playlist = models.ForeignKey(MutualPlaylist, on_delete=models.SET_NULL, null=True, blank=True)
-
-class Chat(models.Model):
-    match = models.OneToOneField(Match, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-
-class Message(models.Model):
-    chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
-    sender = models.ForeignKey(User, on_delete=models.CASCADE)
-    content = models.TextField()
-    message_type = models.CharField(max_length=255)
-    shared_item_id = models.IntegerField(blank=True, null=True)
-    sent_at = models.DateTimeField(auto_now_add=True)
