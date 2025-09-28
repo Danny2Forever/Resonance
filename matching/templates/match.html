@@ -1,0 +1,14 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+{% if next_user %}
+  <div>
+    <h3>{{ next_user.username }}</h3>
+    <img src="{{ next_user.profile_image.url }}" alt="{{ next_user.username }}">
+    <button>Like</button>
+    <button>Pass</button>
+  </div>
+{% else %}
+  <p>No more users to swipe.</p>
+{% endif %}
+{% endblock %}

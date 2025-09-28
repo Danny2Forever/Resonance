@@ -20,6 +20,7 @@ from users import views
 from django.conf.urls.static import static
 from django.conf import settings
 from users.views import *
+from matching.views import *
 
 urlpatterns = [
     path('login/', SpotifyLoginView.as_view(), name='spotify_login'),
@@ -27,6 +28,7 @@ urlpatterns = [
     path('profile/<str:spotify_id>/', ProfileDetailView.as_view(), name='profile_detail'),
     path('profile/<str:spotify_id>/edit/', EditProfileView.as_view(), name='edit_profile'),
     path('logout/', SpotifyLogoutView.as_view(), name='spotify_logout'),
+    path('match/', MatchUserView.as_view(), name='match_user'),
 
 ]
 
