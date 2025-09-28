@@ -21,6 +21,7 @@ from django.conf.urls.static import static
 from django.conf import settings
 from users.views import *
 from matching.views import *
+from chat.views import *
 
 urlpatterns = [
     path('login/', SpotifyLoginView.as_view(), name='spotify_login'),
@@ -30,6 +31,7 @@ urlpatterns = [
     path('logout/', SpotifyLogoutView.as_view(), name='spotify_logout'),
     path('match/', MatchUserView.as_view(), name='match_user'),
     path('swiped/', SwipeActionView.as_view(), name='swipe_action'),
+    path('chat/<int:chat_id/send/>', SendMessageView.as_view(), name='send_message')
 
 ]
 

@@ -35,7 +35,11 @@
       </div>
     </nav>
 
-    <main class="container mx-auto p-6">{% block content %}{% endblock %}</main>
+    <main class="container mx-auto p-6">
+      {% block content %}
+
+      {% endblock %}
+    </main>
 
     {% block script %}{% endblock %}
   </body>

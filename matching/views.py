@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from users.models import User
+from chat.models import Chat
 from .models import *
 from matching.service import jaccard_similarity, create_mutual_playlist
 from django.db.models import Q
 from django.http import JsonResponse
 import json
+from django.db import transaction
 
 class MatchUserView(View):
     def get(self, request):
@@ -63,11 +65,13 @@ class SwipeActionView(View):
                 swiper=swiped_user, swiped=current_user, action="like"
             ).exists()
             if both_like:
-                playlist = create_mutual_playlist(current_user, swiped_user)
-                Match.objects.create(
-                    user1=current_user,
-                    user2=swiped_user,
-                    similarity_score=0,
-                    mutual_playlist=playlist
-                )
+                with transaction.atomic(): # mutual, match กับ chat จะได้ถูกสร้างพร้อมกัน
+                    playlist = create_mutual_playlist(current_user, swiped_user)
+                    match_obj = Match.objects.create(
+                        user1=current_user,
+                        user2=swiped_user,
+                        similarity_score=0,
+                        mutual_playlist=playlist
+                    )
+                    Chat.objects.create(match=match_obj)
         return redirect("match_user")
