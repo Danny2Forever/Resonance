@@ -27,7 +27,7 @@ DJANGO_SECRET_KEY=your-django-secret-key
 SPOTIFY_CLIENT_ID=your-spotify-client-id
 SPOTIFY_CLIENT_SECRET=your-client-secret
 SPOTIFY_REDIRECT_URI=http://127.0.0.1:8000/callback/
-SPOTIFY_SCOPES = "user-read-email user-read-private"
+SPOTIFY_SCOPES = "user-read-email user-read-private user-top-read playlist-modify-private playlist-modify-public"
 
 DB_NAME=resonance
 DB_USER=postgres
