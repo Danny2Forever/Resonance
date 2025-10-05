@@ -21,6 +21,7 @@ class SpotifyLoginView(View): # ถ้าผู้ใช้ได้ login แ�
                 "user": user,
                 "current_user": current_user,
             })
+        
         # ถ้า user ยังไม่ login สร้าง auth URL ผ่าน SpotifyOAuth
         sp_oauth = SpotifyOAuth(
             client_id=settings.SPOTIFY_CLIENT_ID,
@@ -31,7 +32,7 @@ class SpotifyLoginView(View): # ถ้าผู้ใช้ได้ login แ�
         )
         auth_url = sp_oauth.get_authorize_url()
 
-        return render(request, "login.html", {"spotify_auth_url": auth_url})
+        return redirect(auth_url)
 
 # Callback
 class SpotifyCallbackView(View):
@@ -144,3 +145,10 @@ class SpotifyLogoutView(View):
     def get(self, request):
         request.session.flush()
         return redirect('spotify_login')
+
+class LandingPageView(View):
+    def get(self, request):
+        spotify_id = request.session.get("spotify_id")
+        if spotify_id:
+            return redirect('profile_detail', spotify_id=spotify_id)
+        return render(request, "landing.html")
