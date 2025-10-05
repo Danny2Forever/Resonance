@@ -1,0 +1,99 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Resonance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/global.css' %}" />
+  </head>
+  <body>
+    <div
+      class="relative min-h-screen bg-black bg-[url('/static/images/bg-landing-page.png')] bg-cover bg-center"
+    >
+      <header
+        class="absolute top-0 left-0 w-full px-40 py-20 flex justify-between items-center"
+      >
+        <div class="flex items-center gap-2">
+          <img
+            src="{% static 'images/logo-resonance.png' %}"
+            alt="Resonance Logo"
+            class="h-10"
+          />
+        </div>
+        <a href="{% url 'spotify_login' %}" class="text-white font-poppins"
+          >Project Repository</a
+        >
+      </header>
+
+      <!-- Main content container -->
+      <div class="flex min-h-screen px-40 py-28 pb-12 gap-8">
+        <!-- Left Content -->
+        <div class="w-2/3 flex flex-col justify-center">
+          <div class="max-w-3xl">
+            <div class="mb-8">
+              <div class="mb-4">
+                <span class="text-white text-6xl font-bold font-poppins"
+                  >"More than
+                </span>
+                <span
+                  class="text-green-500 text-6xl font-bold font-poppins"
+                  >matches</span
+                >
+                <span class="text-white text-6xl font-bold font-poppins"
+                  >."</span
+                >
+              </div>
+
+              <div class="mt-4">
+                <span class="text-white text-6xl font-bold font-poppins"
+                  >More than
+                </span>
+                <span class="text-blue-500 text-6xl font-bold font-poppins"
+                  >music</span
+                >
+                <span class="text-white text-6xl font-bold font-poppins"
+                  >."</span
+                >
+              </div>
+            </div>
+            <p class="text-gray-400 text-xl mt-6 mb-2 font-poppins">
+              Swipe through songs and people who get your unique taste
+            </p>
+            <p class="text-gray-400 text-xl mb-12 font-poppins">
+              Connect with others through the universal language of music.
+            </p>
+            <div class="flex gap-4">
+              <a
+                href="{% url 'spotify_login' %}"
+                class="bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-full transition duration-300 font-poppins flex items-center gap-2"
+              >
+                <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor">
+                  <path
+                    d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.371-.721.49-1.101.241-3.021-1.85-6.82-2.27-11.29-1.24-.418.1-.821-.201-.921-.61-.101-.418.201-.821.61-.921 4.901-1.12 9.13-.63 12.45 1.42.371.24.49.721.241 1.101zm1.47-3.27c-.301.458-.921.61-1.381.301-3.46-2.13-8.73-2.75-12.82-1.51-.491.18-1.02-.12-1.181-.61-.18-.491.12-1.02.61-1.181 4.67-1.42 10.47-.721 14.46 1.7.448.301.6.93.3 1.381zm.129-3.39c-4.15-2.461-11.01-2.69-14.97-1.49-.601.18-1.23-.18-1.411-.779-.18-.601.18-1.23.78-1.411 4.561-1.381 12.14-1.12 16.93 1.7.561.331.751 1.05.42 1.61-.33.561-1.05.751-1.61.42z"
+                  />
+                </svg>
+                Login with Spotify
+              </a>
+              <a
+                href="#"
+                class="border border-white/20 text-white font-semibold py-3 px-6 rounded-full transition duration-300 font-poppins"
+              >
+                Learn More
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Content -->
+        <div class="w-1/3 flex items-center justify-end">
+          <img
+            src="{% static 'images/main-image.png' %}"
+            alt="Profile Card"
+            class="w-[500px] h-auto object-cover rounded-2xl"
+          />
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

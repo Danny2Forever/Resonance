@@ -15,14 +15,20 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from django.urls import path
+from django.urls import path, include
+from django.contrib import admin
 from users import views
 from django.conf.urls.static import static
 from django.conf import settings
 from users.views import *
 from matching.views import *
+from django.shortcuts import render
+
+def landing_page(request):
+    return render(request, "landing.html")
 
 urlpatterns = [
+    path('', LandingPageView.as_view(), name='landing'),
     path('login/', SpotifyLoginView.as_view(), name='spotify_login'),
     path('callback/', SpotifyCallbackView.as_view(), name='spotify_callback'),
     path('profile/<str:spotify_id>/', ProfileDetailView.as_view(), name='profile_detail'),
@@ -30,6 +36,9 @@ urlpatterns = [
     path('logout/', SpotifyLogoutView.as_view(), name='spotify_logout'),
     path('match/', MatchUserView.as_view(), name='match_user'),
     path('swiped/', SwipeActionView.as_view(), name='swipe_action'),
+    path('chat/', include('chat.urls')),
+    path('admin/', admin.site.urls),
+    
 
 ]
 
