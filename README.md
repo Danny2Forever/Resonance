@@ -34,6 +34,11 @@ DB_USER=postgres
 DB_PASSWORD=password
 DB_HOST=localhost
 DB_PORT=5432
+
+# for google cloud bucket
+GS_BUCKET_NAME=your-bucket-name
+GOOGLE_APPLICATION_CREDENTIALS=C:/path/to/your/credential/file.json
+
 ```
 Migrate
 ```
