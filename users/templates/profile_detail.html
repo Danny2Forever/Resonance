@@ -1,21 +1,112 @@
+{% extends 'layout.html' %} 
+{% load static %} 
+{% block title %}{{ user.username}}'s Profile{% endblock %} 
+{% block content %}
+<div class="max-w-4xl mx-auto bg-[#1E1E1E] rounded-3xl p-8">
+  <!-- Profile Header -->
+  <div class="flex items-start gap-6 mb-8">
+    <img
+      class="w-24 h-24 rounded-full object-cover bg-gray-800"
+      src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}/media/404/bf8ad1d61e560b61c6dd1b2e0a363724.jpg{% endif %}"
+      alt="{{ user.username }}'s profile"
+    />
+    <div class="flex-1">
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-2xl font-bold mb-1">{{ user.username }}</h1>
+          <p class="text-gray-400">{{ user.email }}</p>
+        </div>
+        {% if current_user.spotify_id == user.spotify_id or current_user.is_admin %}
+        <div class="space-x-4">
+          <a
+            href="{% url 'edit_profile' user.spotify_id %}"
+            class="inline-block px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-full text-sm transition-colors"
+          >
+            Edit Profile
+          </a>
+          <a
+            href="{% url 'spotify_logout' %}"
+            class="inline-block px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-full text-sm transition-colors"
+          >
+            Logout
+          </a>
+        </div>
+        {% endif %}
+      </div>
+      <p class="mt-4 text-gray-300">
+        {{ user.bio|default:"Music lover | Always discovering new sounds" }}
+      </p>
+    </div>
+  </div>
 
-{% extends 'layout.html' %}
-{% load static %}
-  {% block title %}{{ user.username }}'s Profile{% endblock %}
-    {% block head %}
-    {% endblock %}
-    {% block content %}
-    {{ user.username }}
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-6 gap-4 mb-8">
+    <div class="bg-black/30 rounded-2xl p-4 text-center">
+      <div class="text-3xl font-bold text-green-500">489</div>
+      <div class="text-sm text-gray-400">Songs Liked</div>
+    </div>
+    <div class="bg-black/30 rounded-2xl p-4 text-center">
+      <div class="text-3xl font-bold text-green-500">127</div>
+      <div class="text-sm text-gray-400">Artists</div>
+    </div>
+    <div class="bg-black/30 rounded-2xl p-4 text-center">
+      <div class="text-3xl font-bold text-green-500">23</div>
+      <div class="text-sm text-gray-400">Genres</div>
+    </div>
+    <div class="bg-black/30 rounded-2xl p-4 text-center">
+      <div class="text-3xl font-bold text-green-500">42</div>
+      <div class="text-sm text-gray-400">Songs/Day</div>
+    </div>
+    <div class="bg-black/30 rounded-2xl p-4 text-center">
+      <div class="text-3xl font-bold text-green-500">Dreamy</div>
+      <div class="text-sm text-gray-400">Top Mood</div>
+    </div>
+    <div class="bg-black/30 rounded-2xl p-4 text-center">
+      <div class="text-3xl font-bold text-green-500">118</div>
+      <div class="text-sm text-gray-400">Avg BPM</div>
+    </div>
+  </div>
 
-      <img style="height: 100px; width: 100px;" 
-      src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}/media/404/bf8ad1d61e560b61c6dd1b2e0a363724.jpg{% endif %}" 
-      alt="">
-      <p>Email: {{ user.email }}</p>
-      <p>Bio: {{ user.bio }}</p>
-      <p>Favorite song: {{ user. }}</p>
-      
-      {% if current_user.spotify_id == user.spotify_id or current_user.is_admin %}
-          <a href="{% url 'edit_profile' user.spotify_id %}">Edit Profile</a>
-          <a href="{% url 'spotify_logout' %}">Logout</a>
-      {% endif %}
-    {% endblock %}
+  <!-- Two Column Layout -->
+  <div class="grid grid-cols-2 gap-8">
+    <!-- Top Artists -->
+    <div class="bg-black/30 rounded-2xl p-6">
+      <h2 class="text-xl font-bold mb-4">Top Artists</h2>
+      <div class="space-y-4">
+        {% for i in "12345" %}
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="text-gray-500">{{ forloop.counter }}</span>
+            <div>
+              <div class="font-medium">Artist Name</div>
+              <div class="text-sm text-gray-500">Genre</div>
+            </div>
+          </div>
+          <div class="text-gray-500">
+            <span>342</span>
+            <span class="text-sm">plays</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Top Genres -->
+    <div class="bg-black/30 rounded-2xl p-6">
+      <h2 class="text-xl font-bold mb-4">Top Genres</h2>
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span>Indie Pop</span>
+          </div>
+          <div class="text-sm text-gray-500">32% (150 songs)</div>
+        </div>
+        <div class="w-full bg-gray-800 rounded-full h-2">
+          <div class="bg-green-500 h-2 rounded-full" style="width: 32%"></div>
+        </div>
+        <!-- Add more genres similarly -->
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
