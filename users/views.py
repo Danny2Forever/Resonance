@@ -4,11 +4,13 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.views import View
 from .models import User
+from spotify.models import UserMusicProfile
+from django.conf import settings
+from spotipy.oauth2 import SpotifyOAuth
 from .forms import UserForm
 from spotify.refresh import refresh_user_profile
 
 import spotipy
-from spotipy.oauth2 import SpotifyOAuth
 
 # Login
 class SpotifyLoginView(View): # ถ้าผู้ใช้ได้ login แล้ว (sessionของ spotify id ยังอยู่) เมื่อเรียกหา path login จะถูกไล่ไป profile_detail
@@ -134,10 +136,12 @@ class ProfileDetailView(View):
     def get(self, request, spotify_id):
         current_id = request.session.get("spotify_id")
         current_user = User.objects.filter(spotify_id=current_id).first()
+        user_music_profile = UserMusicProfile.objects.get(user__spotify_id=current_id)
         user = get_object_or_404(User, spotify_id=spotify_id)
         return render(request, 'profile_detail.html', {
             'user': user,
             'current_user': current_user,
+            'user_music_profile': user_music_profile,
         })
 
 # Logout
