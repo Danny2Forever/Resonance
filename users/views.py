@@ -144,7 +144,7 @@ class ProfileDetailView(View):
 class SpotifyLogoutView(View):
     def get(self, request):
         request.session.flush()
-        return redirect('spotify_login')
+        return redirect('landing')
 
 class LandingPageView(View):
     def get(self, request):
