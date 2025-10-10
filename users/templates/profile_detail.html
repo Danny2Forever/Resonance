@@ -7,7 +7,7 @@
   <div class="flex items-start gap-6 mb-8">
     <img
       class="w-24 h-24 rounded-full object-cover bg-gray-800"
-      src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}/media/404/bf8ad1d61e560b61c6dd1b2e0a363724.jpg{% endif %}"
+      src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %} https://storage.googleapis.com/resonace-bucket/404.jpg {% endif %}"
       alt="{{ user.username }}'s profile"
     />
     <div class="flex-1">
@@ -73,20 +73,25 @@
     <div class="bg-black/30 rounded-2xl p-6">
       <h2 class="text-xl font-bold mb-4">Top Artists</h2>
       <div class="space-y-4">
-        {% for i in "12345" %}
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <span class="text-gray-500">{{ forloop.counter }}</span>
-            <div>
-              <div class="font-medium">Artist Name</div>
-              <div class="text-sm text-gray-500">Genre</div>
+        {% for i in user_music_profile.top_artists|slice:":9" %}
+          <a href="https://open.spotify.com/artist/{{ i.id }}" class="block" target="_blank"" >
+            <div class="flex flex-col sm:flex-row items-center sm:justify-between gap-4 sm:gap-0 hover:bg-black/40 transition rounded-xl p-2">
+              <div class="flex items-center gap-3 w-full sm:w-auto">
+                <span class="text-gray-500">{{ forloop.counter }}</span>
+                <div>
+                  <div class="font-medium">{{ i.name }}</div>
+                  <div class="text-sm text-gray-500">{{ i.genres }}</div>
+                </div>
+              </div>
+              <div class="text-gray-500 flex-shrink-0">
+                <img
+                  src="{{ i.images.url }}"
+                  alt="{{ i.name }}"
+                  class="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full object-cover mx-auto mb-3"
+                />
+              </div>
             </div>
-          </div>
-          <div class="text-gray-500">
-            <span>342</span>
-            <span class="text-sm">plays</span>
-          </div>
-        </div>
+          </a>
         {% endfor %}
       </div>
     </div>

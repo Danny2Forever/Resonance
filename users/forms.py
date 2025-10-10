@@ -18,4 +18,3 @@ class UserForm(forms.ModelForm):
             }),
             'profile_picture' : forms.FileInput(attrs={"class":"hidden"})
         }
-        
