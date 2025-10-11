@@ -117,7 +117,7 @@ class EditProfileView(View):
             return error
 
         form = UserForm(instance=user)
-        return render(request, 'edit_profile.html', {'form': form, 'current_user': current_user})
+        return render(request, 'profile/edit_profile.html', {'form': form, 'current_user': current_user})
 
     def post(self, request, spotify_id):
         user, current_user, error = self.valid_user(request, spotify_id)
@@ -129,7 +129,7 @@ class EditProfileView(View):
             form.save()
             return redirect('profile_detail', spotify_id=user.spotify_id)
 
-        return render(request, 'edit_profile.html', {'form': form, 'current_user': current_user})
+        return render(request, 'profile/edit_profile.html', {'form': form, 'current_user': current_user})
 
 # Show profile
 class ProfileDetailView(View):
@@ -138,8 +138,7 @@ class ProfileDetailView(View):
         current_user = User.objects.filter(spotify_id=current_id).first()
         user_music_profile = UserMusicProfile.objects.get(user__spotify_id=spotify_id)
         user = get_object_or_404(User, spotify_id=spotify_id)
-        print(user_music_profile)
-        return render(request, 'profile_detail.html', {
+        return render(request, 'profile/profile_detail.html', {
             'user': user,
             'current_user': current_user,
             'user_music_profile': user_music_profile,
@@ -157,4 +156,3 @@ class LandingPageView(View):
         if spotify_id:
             return redirect('profile_detail', spotify_id=spotify_id)
         return render(request, "landing.html")
-    
