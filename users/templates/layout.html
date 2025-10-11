@@ -80,17 +80,21 @@
             </a>
           </li>
           <li class="profile-image">
-            <a
-              href=""
+              {% if current_user.profile_picture %}
+              <a
+              href="{% url 'profile_detail' current_user.spotify_id %}"
               class="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors"
-            >
-              {% if user.profile_picture %}
+              >
               <img
-                src="{{ user.profile_picture.url }}"
+                src="{{ current_user.profile_picture.url }}"
                 alt="Profile"
                 class="w-8 h-8 rounded-full object-cover bg-gray-800"
               />
               {% else %}
+              <a
+              href="{% url 'spotify_login'%}"
+              class="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors"
+              >
               <svg
                 class="w-8 h-8 p-1.5 rounded-full bg-gray-800"
                 fill="currentColor"

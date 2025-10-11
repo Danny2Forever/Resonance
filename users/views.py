@@ -138,6 +138,7 @@ class ProfileDetailView(View):
         current_user = User.objects.filter(spotify_id=current_id).first()
         user_music_profile = UserMusicProfile.objects.get(user__spotify_id=spotify_id)
         user = get_object_or_404(User, spotify_id=spotify_id)
+        print(user_music_profile)
         return render(request, 'profile_detail.html', {
             'user': user,
             'current_user': current_user,
@@ -156,3 +157,4 @@ class LandingPageView(View):
         if spotify_id:
             return redirect('profile_detail', spotify_id=spotify_id)
         return render(request, "landing.html")
+    

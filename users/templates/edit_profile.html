@@ -1,6 +1,7 @@
 {% extends 'layout.html' %}
 {% load crispy_forms_tags %}
 {% block content %}
+<div class="max-w-4xl mx-auto bg-[#1E1E1E] rounded-3xl p-8">
 <form method="post" enctype="multipart/form-data">
   {% csrf_token %}
   {{ form.username|as_crispy_field }}
@@ -19,6 +20,7 @@
   <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Save</button>
 
 </form>
+</div
 {% endblock %}
 {% block script %}
 <script>
