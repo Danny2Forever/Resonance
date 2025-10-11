@@ -39,7 +39,7 @@ class MatchUserView(View):
         candidates.sort(key=lambda x: x["score"], reverse=True)
         next_user = candidates[0]["user"] if candidates else None
 
-        return render(request, "match.html", {
+        return render(request, "matching/match.html", {
             "current_user": current_user,
             "next_user": next_user,
             "candidates": candidates,
