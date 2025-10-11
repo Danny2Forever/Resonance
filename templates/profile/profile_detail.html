@@ -78,18 +78,19 @@
             <div class="flex flex-col sm:flex-row items-center sm:justify-between gap-4 sm:gap-0 hover:bg-black/40 transition rounded-xl p-2">
               <div class="flex items-center gap-3 w-full sm:w-auto">
                 <span class="text-gray-500">{{ forloop.counter }}</span>
+                <div class="text-gray-500 flex-shrink-0">
+                <img
+                  src="{{ i.images.url }}"
+                  alt="{{ i.name }}"
+                  class="w-5 h-5 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full object-cover mx-auto"
+                />
+              </div>
                 <div>
                   <div class="font-medium">{{ i.name }}</div>
                   <div class="text-sm text-gray-500">{{ i.genres }}</div>
                 </div>
               </div>
-              <div class="text-gray-500 flex-shrink-0">
-                <img
-                  src="{{ i.images.url }}"
-                  alt="{{ i.name }}"
-                  class="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full object-cover mx-auto mb-3"
-                />
-              </div>
+      
             </div>
           </a>
         {% endfor %}

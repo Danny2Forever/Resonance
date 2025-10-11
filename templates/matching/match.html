@@ -1,19 +1,116 @@
 {% extends 'layout.html' %}
+{% load static %}
 
 {% block content %}
-{% if next_user %}
-  <div>
-    <img src="{{ next_user.profile_image.url }}" alt="{{ next_user.username }}">
-    <h3>{{ next_user.username }}</h3>
-    <form method="post" action="{% url 'swipe_action' %}">
-      {% csrf_token %}
-      <input type="hidden" name="swiped_id" value="{{ next_user.id }}">
-      <button type="submit" name="action" value="like">👍 Like</button>
-      <button type="submit" name="action" value="pass">👎 Pass</button>
-    </form>
-  </div>
-{% else %}
-  <p>No more users to swipe.</p>
-{% endif %}
+<div class="min-h-screen flex flex-col items-center justify-center bg-background p-6">
 
+  {% if next_user %}
+  <!-- Card -->
+  <div class="relative w-full max-w-md aspect-[3/4] rounded-3xl overflow-hidden shadow-2xl border border-border bg-card">
+    <!-- Background image -->
+    <div class="absolute inset-0 bg-cover bg-center"
+         style="background-image: url('{{ next_user.profile_picture.url }}');">
+    </div>
+
+    <!-- Gradient overlay -->
+    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent"></div>
+
+    <!-- Card content -->
+    <div class="absolute inset-0 flex flex-col justify-end p-8 text-white z-10">
+
+      <!-- Basic Info -->
+      <div class="space-y-2 mb-4">
+        <h2 class="text-4xl font-bold tracking-tight">
+          {{ next_user.username }}
+        </h2>
+
+        {% if next_user.bio %}
+        <p class="text-lg text-gray-200 mt-2 line-clamp-3">{{ next_user.bio }}</p>
+        {% endif %}
+      </div>
+
+      <!-- Favorite Genres -->
+      {% if next_user.music_profile.genres %}
+      <div class="mb-4">
+        <div class="flex items-center gap-2 mb-2">
+
+          <span class="text-sm font-semibold text-primary">Favorite Genres</span>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          {% for g in next_user.music_profile.genres|slice:":5" %}
+          <span class="backdrop-blur-xl bg-primary/20 border border-primary/30 text-foreground px-3 py-1 rounded-full text-xs font-medium">
+            {{ g }}
+          </span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Top Songs -->
+      {% if next_user.music_profile.top_tracks %}
+      <div class="backdrop-blur-xl bg-background/40 rounded-2xl p-4 border border-border/50 mb-4">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-sm font-semibold text-primary">Top Songs</span>
+        </div>
+        <div class="space-y-2 max-h-40 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-600/50">
+          {% for t in next_user.music_profile.top_tracks %}
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-gray-400 w-4">{{ forloop.counter }}</span>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium truncate">{{ t.name }}</p>
+              {% if t.artists %}
+              <p class="text-xs text-gray-400 truncate">{{ t.artists.0 }}</p>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Swipe Buttons -->
+  <form method="post" action="{% url 'swipe_action' %}" class="mt-8">
+    {% csrf_token %}
+    <input type="hidden" name="swiped_id" value="{{ next_user.id }}">
+    <div class="flex items-end justify-center gap-6 max-w-2xl mx-auto">
+
+      <!-- Pass -->
+      <button type="submit" name="action" value="pass"
+              class="w-16 h-16 rounded-full border-2 border-red-500/30 hover:border-red-500 hover:bg-red-500/10
+                     transition-all duration-200 bg-background/50 backdrop-blur-sm hover:scale-110 active:scale-95 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-red-500">
+          <path d="M18 6 6 18" />
+          <path d="m6 6 12 12" />
+        </svg>
+      </button>
+
+      <!-- Like -->
+      <button type="submit" name="action" value="like"
+        class="w-16 h-16 rounded-full bg-green-500/20 border-2 border-green-400/40 hover:border-green-400 hover:bg-green-500/30
+               transition-all duration-200 backdrop-blur-sm hover:scale-110 active:scale-95 flex items-center justify-center shadow-lg shadow-green-500/20">
+        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="currentColor"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="text-green-400">
+          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+        </svg>
+      </button>
+
+
+    </div>
+  </form>
+
+  {% else %}
+  <!-- No users left -->
+  <div class="text-center py-16 text-white">
+    <h3 class="text-lg font-semibold mb-2">No more users to swipe.</h3>
+    <p class="text-sm text-gray-400 mb-6">Try adjusting your preferences or refreshing the page.</p>
+    <a href="{% url 'match_user' %}" class="bg-primary hover:bg-primary/80 text-white font-medium py-2 px-4 rounded-lg">
+      Refresh
+    </a>
+  </div>
+  {% endif %}
+</div>
 {% endblock %}
