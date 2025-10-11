@@ -136,7 +136,7 @@ class ProfileDetailView(View):
     def get(self, request, spotify_id):
         current_id = request.session.get("spotify_id")
         current_user = User.objects.filter(spotify_id=current_id).first()
-        user_music_profile = UserMusicProfile.objects.get(spotify_id=spotify_id)
+        user_music_profile = UserMusicProfile.objects.get(user__spotify_id=spotify_id)
         user = get_object_or_404(User, spotify_id=spotify_id)
         return render(request, 'profile_detail.html', {
             'user': user,
