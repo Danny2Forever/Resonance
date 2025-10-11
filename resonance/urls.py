@@ -34,8 +34,8 @@ urlpatterns = [
     path('profile/<str:spotify_id>/', ProfileDetailView.as_view(), name='profile_detail'),
     path('profile/<str:spotify_id>/edit/', EditProfileView.as_view(), name='edit_profile'),
     path('logout/', SpotifyLogoutView.as_view(), name='spotify_logout'),
-    path('match/', MatchUserView.as_view(), name='match_user'),
-    path('swiped/', SwipeActionView.as_view(), name='swipe_action'),
+    path('match/', include('matching.urls', namespace='matching')),
+    # path('swiped/', SwipeActionView.as_view(), name='swipe_action'),
     path('chat/', include('chat.urls')),
     path('admin/', admin.site.urls),
     

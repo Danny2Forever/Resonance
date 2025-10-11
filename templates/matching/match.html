@@ -1,19 +1,180 @@
-{% extends 'layout.html' %}
+{% extends 'layout.html' %} {% load static %} {% block content %}
+<div class="flex h-screen bg-background">
+  <main class="flex-1 flex flex-col overflow-hidden">
+    <!-- Header -->
+    <div class="px-8 py-6 flex items-center justify-between border-b">
+      <h2 class="text-2xl font-bold">Discover</h2>
+    </div>
 
-{% block content %}
-{% if next_user %}
-  <div>
-    <img src="{{ next_user.profile_image.url }}" alt="{{ next_user.username }}">
-    <h3>{{ next_user.username }}</h3>
-    <form method="post" action="{% url 'swipe_action' %}">
-      {% csrf_token %}
-      <input type="hidden" name="swiped_id" value="{{ next_user.id }}">
-      <button type="submit" name="action" value="like">👍 Like</button>
-      <button type="submit" name="action" value="pass">👎 Pass</button>
-    </form>
-  </div>
-{% else %}
-  <p>No more users to swipe.</p>
-{% endif %}
+    <!-- Profile Card Area -->
+    <div class="flex-1 flex items-center justify-center p-8">
+      <div
+        id="profile-card-container"
+        class="relative w-full max-w-md aspect-[3/4]"
+      >
+        {% if next_user %}
+        <div
+          id="profile-card"
+          class="absolute inset-0 w-full h-full bg-white border rounded-3xl p-6 text-center shadow-lg transition-transform duration-300 ease-in-out flex flex-col items-center justify-center"
+        >
+          <img
+            id="profile-image"
+            src="{{ next_user.profile_picture.url|default:'/static/default_avatar.png' }}"
+            class="w-32 h-32 rounded-full mb-4 object-cover"
+          />
+          <h3 id="profile-name" class="text-2xl font-bold">
+            {{ next_user.username }}
+          </h3>
+          <p id="profile-bio" class="text-gray-500 mt-2">
+            {{ next_user.bio|default:'' }}
+          </p>
+        </div>
+        {% else %}
+        <div
+          id="no-more-profiles"
+          class="w-full h-full bg-white border rounded-3xl flex items-center justify-center p-6 text-center"
+        >
+          <div>
+            <h3 class="text-lg font-semibold">No more profiles</h3>
+            <p class="text-sm text-gray-500 mt-2">Try again later!</p>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
 
+    <!-- Action Buttons Area -->
+    <div class="pb-8 px-8">
+      <div class="flex items-center justify-center gap-6">
+        <button
+          id="pass-btn"
+          class="p-4 rounded-full border-2 hover:bg-gray-100 transition-all"
+        >
+          <svg
+            class="text-red-500"
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+          >
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
+        </button>
+        <button
+          id="like-btn"
+          class="p-6 bg-green-500 text-white rounded-full shadow-lg hover:scale-110 transition-transform"
+        >
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  // Initial Data from Django
+  const currentUserIdElement = document.getElementById("currentUserId");
+  let currentUserId = currentUserIdElement
+    ? JSON.parse(currentUserIdElement.textContent)
+    : null;
+  const csrfToken = "{{ csrf_token }}";
+
+  // DOM Elements
+  const likeBtn = document.getElementById("like-btn");
+  const passBtn = document.getElementById("pass-btn");
+
+  // Core Functions
+  function updateProfileCard(profile) {
+    const card = document.getElementById("profile-card");
+    const nameEl = document.getElementById("profile-name");
+    const bioEl = document.getElementById("profile-bio");
+    const imageEl = document.getElementById("profile-image");
+
+    if (card && nameEl && bioEl && imageEl) {
+      currentUserId = profile.id;
+      nameEl.textContent = profile.username;
+      bioEl.textContent = profile.bio || "";
+      imageEl.src = profile.profile_picture_url;
+
+      // Reset animation state
+      card.style.transition = "none";
+      card.style.transform = "none";
+      card.style.opacity = "1";
+      // Force browser to repaint before re-enabling transition
+      void card.offsetWidth;
+      card.style.transition =
+        "transform 0.3s ease-in-out, opacity 0.3s ease-in-out";
+    }
+  }
+
+  function showNoMoreProfiles() {
+    document.getElementById("profile-card-container").innerHTML = `
+            <div id="no-more-profiles" class="w-full h-full bg-white border rounded-3xl flex items-center justify-center p-6 text-center">
+                <div>
+                    <h3 class="text-lg font-semibold">No more profiles</h3>
+                    <p class="text-sm text-gray-500 mt-2">You've seen everyone!</p>
+                </div>
+            </div>`;
+    currentUserId = null;
+  }
+
+  function handleSwipe(action) {
+    if (!currentUserId) {
+      console.error("No currentUserId to swipe.");
+      return;
+    }
+    const profileCard = document.getElementById("profile-card");
+
+    // Animate the card out
+    if (profileCard) {
+      const direction =
+        action === "like"
+          ? "rotate(15deg) translateX(150%)"
+          : "rotate(-15deg) translateX(-150%)";
+      profileCard.style.transform = direction;
+      profileCard.style.opacity = "0";
+    }
+
+    const formData = new FormData();
+    formData.append("swiped_id", currentUserId);
+    formData.append("action", action);
+
+    // Send the swipe action to the backend
+    fetch("{% url 'matching:api_swipe_action' %}", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": csrfToken,
+      },
+      body: formData,
+    })
+      .then((response) => {
+        if (!response.ok) {
+          console.error("API Error:", response.status, response.statusText);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log("API Response:", data); // Response log
+        if (data.match) {
+          alert(`It's a Match! Your new playlist is: ${data.playlist.name}`);
+        }
+
+        if (data.next_profile) {
+          setTimeout(() => updateProfileCard(data.next_profile), 200);
+        } else {
+          setTimeout(showNoMoreProfiles, 200);
+        }
+      });
+  }
+
+  likeBtn.addEventListener("click", () => handleSwipe("like"));
+  passBtn.addEventListener("click", () => handleSwipe("pass"));
+</script>
 {% endblock %}
