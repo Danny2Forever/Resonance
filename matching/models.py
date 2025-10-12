@@ -20,6 +20,8 @@ class Swipe(models.Model):
 class Match(models.Model):
     user1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='match_user1')
     user2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='match_user2')
+    user1_notified = models.BooleanField(default=False)
+    user2_notified = models.BooleanField(default=False)
     similarity_score = models.FloatField()
     matched_at = models.DateTimeField(auto_now_add=True)
     mutual_playlist = models.ForeignKey(MutualPlaylist, on_delete=models.SET_NULL, null=True, blank=True)
