@@ -15,5 +15,19 @@ class User(models.Model):
     refresh_token = models.CharField(max_length=500, blank=True, null=True)
     token_expires_at = models.DateTimeField(max_length=255, blank=True, null=True)
 
+    swipes = models.ManyToManyField(
+        'self',
+        through='matching.Swipe',
+        symmetrical=False,
+        related_name='swiped_by'
+    )
+
+    matches = models.ManyToManyField(
+        'self',
+        through='matching.Match',
+        symmetrical=False,
+        related_name='matched_with'
+    )
+
     def __str__(self):
         return self.username
