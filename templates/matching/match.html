@@ -69,6 +69,7 @@
   <form id="swipe-form" class="mt-8">
     {% csrf_token %}
     <input type="hidden" name="swiped_id" value="{{ next_user.id }}">
+    <input type="hidden" name="similarity_score" value="{{ next_user.score }}">
     <div class="flex items-end justify-center gap-6 max-w-2xl mx-auto">
 
       <!-- Pass Button -->

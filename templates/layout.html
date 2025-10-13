@@ -49,16 +49,36 @@
             <span>My Matches</span>
           </a>
 
-          <!-- Chat Link -->
-          <a
-            href="#"
-            class="w-full h-12 px-4 flex items-center justify-start gap-3 text-base rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
-          >
-            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
-            </svg>
-            <span>Chat</span>
-          </a>
+          </li>
+          <li class="group">
+            <a
+              href=""
+              class="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors"
+            >
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"
+                />
+              </svg>
+              <span class="text-xs font-medium">Chat</span>
+            </a>
+          </li>
+
+          {% if current_user.is_admin %}
+          <li class="group">
+            <a
+              href="{% url 'admin_dashboard' %}"
+              class="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors"
+            >
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zm0-8h14V7H7v2z"
+                />
+              </svg>
+              <span class="text-xs font-medium">Dashboard</span>
+            </a>
+          </li>
+          {% endif %}
 
           <!-- Profile Link -->
           {% if current_user.profile_picture %}

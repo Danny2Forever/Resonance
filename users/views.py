@@ -5,25 +5,25 @@ from django.http import HttpResponse
 from django.views import View
 from .models import User
 from spotify.models import UserMusicProfile
-from django.conf import settings
 from spotipy.oauth2 import SpotifyOAuth
 from .forms import UserForm
 from spotify.refresh import refresh_user_profile
-
+from users.service import get_current_user
 import spotipy
+from django.utils import timezone
 
 # Login
 class SpotifyLoginView(View): # ถ้าผู้ใช้ได้ login แล้ว (sessionของ spotify id ยังอยู่) เมื่อเรียกหา path login จะถูกไล่ไป profile_detail
     def get(self, request):
         spotify_id = request.session.get("spotify_id") # เช็ค session
-        current_user = User.objects.filter(spotify_id=spotify_id).first() # หาไม่ใช้ filter มีโอกาส session ขาดหาย
+        current_user = User.objects.filter(spotify_id=spotify_id).first() # หากม่ใช้ filter มีโอกาส session ขาดหาย
         if current_user:
             user = get_object_or_404(User, spotify_id=current_user.spotify_id)
             return render(request, "profile_detail.html", {
                 "user": user,
                 "current_user": current_user,
             })
-        
+    
         # ถ้า user ยังไม่ login สร้าง auth URL ผ่าน SpotifyOAuth
         sp_oauth = SpotifyOAuth(
             client_id=settings.SPOTIFY_CLIENT_ID,
@@ -60,7 +60,7 @@ class SpotifyCallbackView(View):
 
         access_token = tokens.get('access_token')
         refresh_token = tokens.get('refresh_token')
-
+        token_expires_at = timezone.now() + timezone.timedelta(seconds=tokens["expires_in"])
         # แบบไม่ใช้ spotipy
         # headers = {"Authorization": f"Bearer {access_token}"}
         # profile_resp = requests.get("https://api.spotify.com/v1/me", headers=headers)
@@ -79,6 +79,7 @@ class SpotifyCallbackView(View):
             user = User.objects.get(spotify_id=spotify_id)
             user.access_token = access_token
             user.refresh_token = refresh_token
+            user.token_expires_at = token_expires_at
             user.save()
             refresh_user_profile(user)
             request.session['spotify_id'] = user.spotify_id # เก็บ spotify_id ลง session
@@ -89,8 +90,21 @@ class SpotifyCallbackView(View):
                 username=username,
                 email=email,
                 access_token=access_token,
-                refresh_token=refresh_token
+                refresh_token=refresh_token,
+                token_expires_at=token_expires_at
             )
+
+        # Update or create user
+        user, _ = User.objects.update_or_create(
+            spotify_id=spotify_id,
+            defaults={
+                'username': username,
+                'email': email,
+                'access_token': access_token,
+                'refresh_token': refresh_token,
+                'token_expires_at': token_expires_at,
+            }
+        )
 
         refresh_user_profile(user)
         request.session['spotify_id'] = user.spotify_id
@@ -100,9 +114,7 @@ class SpotifyCallbackView(View):
 class EditProfileView(View):
     def valid_user(self, request, spotify_id):
         user = get_object_or_404(User, spotify_id=spotify_id)
-
-        current_id = request.session.get("spotify_id")
-        current_user = User.objects.filter(spotify_id=current_id).first()
+        current_user = get_current_user(request)
 
         if not current_user:
             return None, None, HttpResponse("Not logged in.", status=403)
@@ -134,10 +146,12 @@ class EditProfileView(View):
 # Show profile
 class ProfileDetailView(View):
     def get(self, request, spotify_id):
-        current_id = request.session.get("spotify_id")
-        current_user = User.objects.filter(spotify_id=current_id).first()
-        user_music_profile = UserMusicProfile.objects.get(user__spotify_id=spotify_id)
+        current_user = get_current_user(request)
         user = get_object_or_404(User, spotify_id=spotify_id)
+        user_music_profile = get_object_or_404(UserMusicProfile, user__spotify_id=spotify_id)
+        if user.favorite_song:
+            user.favorite_song = user.favorite_song.replace("open.spotify.com/track", "open.spotify.com/embed/track")
+
         return render(request, 'profile/profile_detail.html', {
             'user': user,
             'current_user': current_user,

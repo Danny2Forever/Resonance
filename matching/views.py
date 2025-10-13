@@ -60,6 +60,10 @@ class SwipeActionView(View):
             return JsonResponse({"error": "Already swiped"}, status=400)
 
         Swipe.objects.create(swiper=current_user, swiped=swiped_user, action=action)
+        try:
+            similarity_score = float(request.POST.get("similarity_score", 0.0))
+        except ValueError:
+            similarity_score = 0.0
 
         if action == "like":
             if Swipe.objects.filter(swiper=swiped_user, swiped=current_user, action="like").exists():
@@ -68,8 +72,8 @@ class SwipeActionView(View):
                 new_match = Match.objects.create(
                     user1=current_user,
                     user2=swiped_user,
-                    similarity_score=0,
-                    mutual_playlist=playlist_obj
+                    similarity_score=similarity_score,
+                    mutual_playlist=playlist
                 )
                 Chat.objects.create(match=new_match)
 

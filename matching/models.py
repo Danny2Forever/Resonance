@@ -4,6 +4,7 @@ from users.models import User
 class MutualPlaylist(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
+    playlist_url = models.URLField()
     created_at = models.DateTimeField(auto_now_add=True)
     description = models.TextField(blank=True, null=True)
 
@@ -23,6 +24,6 @@ class Swipe(models.Model):
 class Match(models.Model):
     user1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='match_user1')
     user2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='match_user2')
-    similarity_score = models.FloatField()
+    similarity_score = models.FloatField(default=0.0)
     matched_at = models.DateTimeField(auto_now_add=True)
     mutual_playlist = models.ForeignKey(MutualPlaylist, on_delete=models.SET_NULL, null=True, blank=True)
