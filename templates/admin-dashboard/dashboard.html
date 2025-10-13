@@ -1,0 +1,135 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <h1 class="text-3xl font-bold">Admin Dashboard</h1>
+    <span class="text-sm text-gray-400">Welcome, Admin</span>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="bg-[#1E1E1E] p-6 rounded-2xl shadow hover:shadow-lg transition">
+      <h3 class="text-gray-400 text-sm mb-2">Total Users</h3>
+      <p class="text-3xl font-bold">{{ total_users }}</p>
+    </div>
+    <div class="bg-[#1E1E1E] p-6 rounded-2xl shadow hover:shadow-lg transition">
+      <h3 class="text-gray-400 text-sm mb-2">Total Matches</h3>
+      <p class="text-3xl font-bold">{{ total_matches }}</p>
+    </div>
+    <div class="bg-[#1E1E1E] p-6 rounded-2xl shadow hover:shadow-lg transition">
+      <h3 class="text-gray-400 text-sm mb-2">Total Swipes</h3>
+      <p class="text-3xl font-bold">{{ total_swipes }}</p>
+    </div>
+    <div class="bg-[#1E1E1E] p-6 rounded-2xl shadow hover:shadow-lg transition">
+      <h3 class="text-gray-400 text-sm mb-2">Playlists Created</h3>
+      <p class="text-3xl font-bold">{{ total_playlists }}</p>
+    </div>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="grid grid-cols-2 gap-8">
+    <div class="bg-[#1E1E1E] p-6 rounded-2xl shadow space-y-4">
+      <h2 class="text-xl font-semibold">Recent Swipe</h2>
+      <table class="w-full text-left text-sm">
+        <thead class="text-gray-400 border-b border-gray-700">
+          <tr>
+            <th class="py-2">Swiper</th>
+            <th class="py-2">Swiped</th>
+            <th class="py-2">Swiped At</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for swipe in swipes_page_obj %}
+          <tr class="border-b border-gray-800 hover:bg-[#2A2A2A] transition">
+            <td class="py-2"><a href="{% url 'profile_detail' swipe.swiper.spotify_id %}">
+                {{ swipe.swiper.username }}</a>
+            </td>
+            <td class="py-2"><a href="{% url 'profile_detail' swipe.swiped.spotify_id %}">
+                {{ swipe.swiped.username }}</a>
+            </td>
+            <td class="py-2 text-gray-400">
+                {{ swipe.swiped_at|date:"Y-m-d H:i" }}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="3" class="text-center py-4 text-gray-500">No recent matches.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <!-- Swipes Pagination -->
+      <div class="flex justify-center mt-4 space-x-2">
+        {% if swipes_page_obj.has_previous %}
+          <a href="?swipe_page={{ swipes_page_obj.previous_page_number }}" class="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600">Previous</a>
+        {% endif %}
+        {% for num in swipes_page_obj.paginator.page_range %}
+          {% if swipes_page_obj.number == num %}
+            <span class="px-3 py-1 bg-gray-600 rounded">{{ num }}</span>
+          {% else %}
+            <a href="?swipe_page={{ num }}" class="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+        {% if swipes_page_obj.has_next %}
+          <a href="?swipe_page={{ swipes_page_obj.next_page_number }}" class="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600">Next</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="bg-[#1E1E1E] p-6 rounded-2xl shadow space-y-4">
+      <h2 class="text-xl font-semibold">Recent Matches</h2>
+      <table class="w-full text-left text-sm">
+        <thead class="text-gray-400 border-b border-gray-700">
+          <tr>
+            <th class="py-2">User 1</th>
+            <th class="py-2">User 2</th>
+            <th class="py-2">Matched At</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for match in matches_page_obj %}
+          <tr class="border-b border-gray-800 hover:bg-[#2A2A2A] transition">
+            <td class="py-2"><a href="{% url 'profile_detail' match.user1.spotify_id %}">
+                {{ match.user1.username }}</a>
+            </td>
+            <td class="py-2"><a href="{% url 'profile_detail' match.user2.spotify_id %}">
+                {{ match.user2.username }}</a>
+            </td>
+            <td class="py-2 text-gray-400">
+                {{ match.matched_at|date:"Y-m-d H:i" }}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="3" class="text-center py-4 text-gray-500">No recent matches.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <!-- Matches Pagination -->
+      <div class="flex justify-center mt-4 space-x-2">
+        {% if matches_page_obj.has_previous %}
+          <a href="?match_page={{ matches_page_obj.previous_page_number }}" class="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600">Previous</a>
+        {% endif %}
+        {% for num in matches_page_obj.paginator.page_range %}
+          {% if matches_page_obj.number == num %}
+            <span class="px-3 py-1 bg-gray-600 rounded">{{ num }}</span>
+          {% else %}
+            <a href="?match_page={{ num }}" class="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+        {% if matches_page_obj.has_next %}
+          <a href="?match_page={{ matches_page_obj.next_page_number }}" class="px-3 py-1 bg-gray-700 rounded hover:bg-gray-600">Next</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -4,15 +4,14 @@ from users.models import User
 from .models import *
 from matching.service import jaccard_similarity, create_mutual_playlist
 from django.db.models import Q
-from django.http import JsonResponse
-import json
+from users.service import get_current_user
+from spotify.refresh import refresh_user_profile
 
 class MatchUserView(View):
     def get(self, request):
-        spotify_id = request.session.get("spotify_id")
-        current_user = get_object_or_404(User, spotify_id=spotify_id)
+        current_user = get_current_user(request)
         candidates = []
-
+        refresh_user_profile(current_user)
         # หาคนที่ current_user เคย swipe ไปแล้ว
         swiped_ids = Swipe.objects.filter(swiper=current_user).values_list("swiped__spotify_id", flat=True)
 
@@ -52,11 +51,14 @@ class SwipeActionView(View):
 
         swiped_id = request.POST.get("swiped_id")
         action = request.POST.get("action")  # "like" หรือ "pass"
-
         swiped_user = get_object_or_404(User, id=swiped_id)
-
+        
         # บันทึก swipe
         Swipe.objects.create(swiper=current_user, swiped=swiped_user, action=action)
+        try:
+            similarity_score = float(request.POST.get("similarity_score", 0.0))
+        except ValueError:
+            similarity_score = 0.0
 
         if action == "like":
             both_like = Swipe.objects.filter(
@@ -67,7 +69,7 @@ class SwipeActionView(View):
                 Match.objects.create(
                     user1=current_user,
                     user2=swiped_user,
-                    similarity_score=0,
+                    similarity_score=similarity_score,
                     mutual_playlist=playlist
                 )
         return redirect("match_user")

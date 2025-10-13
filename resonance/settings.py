@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     "crispy_forms",
     "crispy_tailwind",
     'storages',
-
+    'admin_dashboard',
 ]
 
 MIDDLEWARE = [
