@@ -73,7 +73,7 @@ class SwipeActionView(View):
                     user1=current_user,
                     user2=swiped_user,
                     similarity_score=similarity_score,
-                    mutual_playlist=playlist
+                    mutual_playlist=playlist_obj
                 )
                 Chat.objects.create(match=new_match)
 
