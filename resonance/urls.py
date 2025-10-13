@@ -28,6 +28,9 @@ from django.shortcuts import render
 def landing_page(request):
     return render(request, "landing.html")
 
+def test_chat_view(request):
+    return render(request, 'chat/chat.html')
+
 urlpatterns = [
     path('', LandingPageView.as_view(), name='landing'),
     path('login/', SpotifyLoginView.as_view(), name='spotify_login'),
@@ -37,7 +40,8 @@ urlpatterns = [
     path('logout/', SpotifyLogoutView.as_view(), name='spotify_logout'),
     path('match/', MatchUserView.as_view(), name='match_user'),
     path('swiped/', SwipeActionView.as_view(), name='swipe_action'),
-    path('chat/', include('chat.urls')),
+    # path('chat/', include('chat.urls')),
+    path('chat/', test_chat_view, name='chat_test_page'),
     path("dashboard/", AdminDashboardView.as_view(), name="admin_dashboard"),
     
 ]

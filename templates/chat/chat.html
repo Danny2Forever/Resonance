@@ -1,0 +1,225 @@
+{% extends 'layout.html' %} 
+{% load static %} 
+
+{% block title %}Chat - Resonance{% endblock %} 
+
+{% block content %}
+<body class="bg-[#121212]">
+    <div class="flex h-screen">
+        <!-- Messages Panel -->
+        <div class="w-96 bg-[#0a0a0a] border-r border-white/10 flex flex-col">
+            <!-- Header -->
+            <div class="p-6 border-b border-white/10">
+                <h2 class="text-2xl font-bold text-white">Messages</h2>
+                <p class="text-sm text-gray-400">Chat with your matches</p>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="px-6 py-4">
+                <div class="relative">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" placeholder="Search" class="w-full bg-gray-900 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-colors">
+                </div>
+            </div>
+
+            <!-- Chat List -->
+            <div class="flex-1 overflow-y-auto px-4 space-y-2">
+                <!-- Active Chat -->
+                <button onclick="selectChat('emma', 'Emma', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&q=80&fm=jpg&crop=faces&fit=crop&h=100&w=100', 'Online')" class="w-full flex items-center gap-3 p-3 rounded-lg bg-green-600 hover:bg-green-500 transition-colors chat-item" id="chat-emma">
+                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&q=80&fm=jpg&crop=faces&fit=crop&h=100&w=100" alt="Emma" class="w-12 h-12 rounded-full object-cover flex-shrink-0">
+                    <div class="flex-1 min-w-0 text-left">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold text-black text-sm">Emma</span>
+                            <span class="text-xs text-black/60">40m ago</span>
+                        </div>
+                        <p class="text-xs text-black/70 truncate">Shared a song</p>
+                    </div>
+                </button>
+
+                <!-- Inactive Chat -->
+                <button onclick="selectChat('alex', 'Alex', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&q=80&fm=jpg&crop=faces&fit=crop&h=100&w=100', 'Away')" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-900 transition-colors chat-item">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&q=80&fm=jpg&crop=faces&fit=crop&h=100&w=100" alt="Alex" class="w-12 h-12 rounded-full object-cover flex-shrink-0">
+                    <div class="flex-1 min-w-0 text-left">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold text-white text-sm">Alex</span>
+                            <span class="text-xs text-gray-500">2h ago</span>
+                        </div>
+                        <p class="text-xs text-gray-500 truncate">Your music taste is amazing!</p>
+                    </div>
+                </button>
+
+                <!-- Inactive Chat -->
+                <button onclick="selectChat('maya', 'Maya', 'https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&q=80&fm=jpg&crop=faces&fit=crop&h=100&w=100', 'Offline')" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-900 transition-colors chat-item">
+                    <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&q=80&fm=jpg&crop=faces&fit=crop&h=100&w=100" alt="Maya" class="w-12 h-12 rounded-full object-cover flex-shrink-0">
+                    <div class="flex-1 min-w-0 text-left">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold text-white text-sm">Maya</span>
+                        </div>
+                        <p class="text-xs text-gray-500">Start a conversation</p>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Chat Area -->
+        <main class="flex-1 flex flex-col bg-[#121212]" id="chatArea">
+            <!-- Empty State -->
+            <div class="flex-1 flex flex-col items-center justify-center" id="emptyState">
+                <svg class="w-20 h-20 text-gray-700 mb-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <h2 class="text-2xl font-bold text-white mb-2">Select a chat</h2>
+                <p class="text-gray-400">Choose a match to start messaging</p>
+            </div>
+
+            <!-- Chat Window -->
+            <div id="chatWindow" class="hidden flex flex-col h-full">
+                <!-- Chat Header -->
+                <header class="flex items-center justify-between p-6 border-b border-white/10">
+                    <div class="flex items-center gap-4">
+                        <img id="chatAvatar" src="" alt="User" class="w-12 h-12 rounded-full object-cover">
+                        <div>
+                            <h2 id="chatName" class="text-xl font-bold text-white"></h2>
+                            <span id="chatStatus" class="text-sm text-green-500"></span>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Messages -->
+                <div id="messagesContainer" class="flex-1 p-6 overflow-y-auto flex flex-col gap-4">
+                </div>
+
+                <!-- Message Input -->
+                <footer class="p-6 border-t border-white/10">
+                    <form class="flex items-center gap-4" onsubmit="sendMessage(event)">
+                        <button type="button" class="text-gray-400 hover:text-white transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.59a2 2 0 0 1-2.83-2.83l.79-.79"></path>
+                            </svg>
+                        </button>
+                        <input id="messageInput" class="flex-1 bg-gray-900 border border-white/10 rounded-full py-3 px-5 text-white placeholder-gray-500 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-colors" type="text" placeholder="Type a message..." />
+                        <button type="submit" class="bg-green-600 hover:bg-green-500 text-black rounded-full w-12 h-12 flex items-center justify-center transition-colors flex-shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9"></polygon>
+                            </svg>
+                        </button>
+                    </form>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const chatData = {
+            emma: {
+                name: 'Emma',
+                status: 'Online',
+                messages: [
+                    { type: 'received', text: 'Hey! I saw we both love Luna Eclipse!' },
+                    { type: 'sent', text: 'Yes! Midnight Dreams is on repeat for me' },
+                    { type: 'received', text: 'Have you listened to their new album?' }
+                ]
+            },
+            alex: {
+                name: 'Alex',
+                status: 'Away',
+                messages: [
+                    { type: 'received', text: 'Your music taste is amazing!' },
+                    { type: 'sent', text: 'Thanks! I love discovering new artists' },
+                    { type: 'received', text: 'You should check out this playlist I made' }
+                ]
+            },
+            maya: {
+                name: 'Maya',
+                status: 'Offline',
+                messages: []
+            }
+        };
+
+        function selectChat(chatId, name, avatar, status) {
+            const emptyState = document.getElementById('emptyState');
+            const chatWindow = document.getElementById('chatWindow');
+            const messagesContainer = document.getElementById('messagesContainer');
+            
+            
+            document.getElementById('chatName').textContent = name;
+            document.getElementById('chatAvatar').src = avatar;
+            document.getElementById('chatStatus').textContent = status;
+            
+            
+            const statusEl = document.getElementById('chatStatus');
+            if (status === 'Online') {
+                statusEl.className = 'text-sm text-green-500';
+            } else if (status === 'Away') {
+                statusEl.className = 'text-sm text-yellow-500';
+            } else {
+                statusEl.className = 'text-sm text-gray-500';
+            }
+            
+            
+            messagesContainer.innerHTML = '';
+            const messages = chatData[chatId].messages;
+            
+            messages.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = msg.type === 'sent' ? 'flex justify-end' : 'flex justify-start';
+                
+                const messageBubble = document.createElement('div');
+                messageBubble.className = msg.type === 'sent' 
+                    ? 'bg-green-600 text-black rounded-2xl rounded-br-none p-4 max-w-lg'
+                    : 'bg-gray-800 text-white rounded-2xl rounded-bl-none p-4 max-w-lg';
+                messageBubble.textContent = msg.text;
+                
+                messageDiv.appendChild(messageBubble);
+                messagesContainer.appendChild(messageDiv);
+            });
+            
+            
+            document.querySelectorAll('.chat-item').forEach(item => {
+                item.classList.remove('bg-green-600', 'hover:bg-green-500');
+                item.classList.add('hover:bg-gray-900');
+            });
+            document.getElementById(`chat-${chatId}`).classList.add('bg-green-600', 'hover:bg-green-500');
+            document.getElementById(`chat-${chatId}`).classList.remove('hover:bg-gray-900');
+            
+            
+            emptyState.classList.add('hidden');
+            chatWindow.classList.remove('hidden');
+            
+            
+            document.getElementById('messageInput').value = '';
+        }
+
+        function sendMessage(event) {
+            event.preventDefault();
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            const messagesContainer = document.getElementById('messagesContainer');
+            
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex justify-end';
+            
+            const messageBubble = document.createElement('div');
+            messageBubble.className = 'bg-green-600 text-black rounded-2xl rounded-br-none p-4 max-w-lg';
+            messageBubble.textContent = message;
+            
+            messageDiv.appendChild(messageBubble);
+            messagesContainer.appendChild(messageDiv);
+            
+            
+            input.value = '';
+            
+            
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    </script>
+</body>
+{% endblock %}
