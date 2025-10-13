@@ -2,16 +2,19 @@ from users.spotify_utils import get_spotify_client
 from .models import MutualPlaylist, User
 
 def flatten_list(data):
-    """
-    Safely flattens a list of lists or returns the original list
-    if it's already flat. Ensures all items are strings.
-    """
-    if not data or not isinstance(data, list): return []
+    '''แปลงรายการที่อาจมีการซ้อนกัน [[1], 2, [3, 4]] เป็น [1, 2, 3, 4]'''
+    if not data or not isinstance(data, list):
+        return []
+
     flat_list = []
     for item in data:
-        if isinstance(item, list): flat_list.extend(str(sub_item) for sub_item in item)
-        else: flat_list.append(str(item))
+        if isinstance(item, list):
+            for sub_item in item:
+                flat_list.append(str(sub_item))
+        else:
+            flat_list.append(str(item))
     return flat_list
+
 
 def jaccard_similarity(list1, list2):
     """Calculates the Jaccard similarity between two lists, handling potential nesting."""
