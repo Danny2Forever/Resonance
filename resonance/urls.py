@@ -22,6 +22,7 @@ from django.conf.urls.static import static
 from django.conf import settings
 from users.views import *
 from matching.views import *
+from admin_dashboard.views import AdminDashboardView
 from django.shortcuts import render
 
 def landing_page(request):
@@ -37,6 +38,6 @@ urlpatterns = [
     path('match/', MatchUserView.as_view(), name='match_user'),
     path('swiped/', SwipeActionView.as_view(), name='swipe_action'),
     path('chat/', include('chat.urls')),
-    path('admin/', admin.site.urls),
+    path("dashboard/", AdminDashboardView.as_view(), name="admin_dashboard"),
     
 ]

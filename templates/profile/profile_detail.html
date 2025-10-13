@@ -7,14 +7,18 @@
   <div class="flex items-start gap-6 mb-8">
     <img
       class="w-24 h-24 rounded-full object-cover bg-gray-800"
-      src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %} https://storage.googleapis.com/resonace-bucket/404.jpg {% endif %}"
+      src="{{ user.profile_picture.url }}"
       alt="{{ user.username }}'s profile"
     />
     <div class="flex-1">
       <div class="flex justify-between items-start">
-        <div>
+        <div class="space-y-2 w-full max-w-lg">
           <h1 class="text-2xl font-bold mb-1">{{ user.username }}</h1>
-          <p class="text-gray-400">{{ user.email }}</p>
+          {% if user.favorite_song %}
+            <iframe data-testid="embed-iframe" 
+                style="border-radius:12px" src="{{ user.favorite_song }}?utm_source=generator&theme=0" width="80%" height="80" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy">
+            </iframe>
+          {% endif %}
         </div>
         {% if current_user.spotify_id == user.spotify_id or current_user.is_admin %}
         <div class="space-x-4">
@@ -24,48 +28,22 @@
           >
             Edit Profile
           </a>
+          {% if current_user.spotify_id == user.spotify_id %}
           <a
             href="{% url 'spotify_logout' %}"
             class="inline-block px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-full text-sm transition-colors"
           >
             Logout
           </a>
+          {% endif %}
         </div>
         {% endif %}
       </div>
-      <p class="mt-4 text-gray-300">
+      <p class=" text-gray-300">
         {{ user.bio|default:"Music lover | Always discovering new sounds" }}
       </p>
     </div>
   </div>
-
-  <!-- Stats Grid -->
-  {% comment %} <div class="grid grid-cols-6 gap-4 mb-8">
-    <div class="bg-black/30 rounded-2xl p-4 text-center">
-      <div class="text-3xl font-bold text-green-500">489</div>
-      <div class="text-sm text-gray-400">Songs Liked</div>
-    </div>
-    <div class="bg-black/30 rounded-2xl p-4 text-center">
-      <div class="text-3xl font-bold text-green-500">127</div>
-      <div class="text-sm text-gray-400">Artists</div>
-    </div>
-    <div class="bg-black/30 rounded-2xl p-4 text-center">
-      <div class="text-3xl font-bold text-green-500">23</div>
-      <div class="text-sm text-gray-400">Genres</div>
-    </div>
-    <div class="bg-black/30 rounded-2xl p-4 text-center">
-      <div class="text-3xl font-bold text-green-500">42</div>
-      <div class="text-sm text-gray-400">Songs/Day</div>
-    </div>
-    <div class="bg-black/30 rounded-2xl p-4 text-center">
-      <div class="text-3xl font-bold text-green-500">Dreamy</div>
-      <div class="text-sm text-gray-400">Top Mood</div>
-    </div>
-    <div class="bg-black/30 rounded-2xl p-4 text-center">
-      <div class="text-3xl font-bold text-green-500">118</div>
-      <div class="text-sm text-gray-400">Avg BPM</div>
-    </div>
-  </div> {% endcomment %}
 
   <!-- Two Column Layout -->
   <div class="grid grid-cols-2 gap-8">
@@ -87,7 +65,7 @@
               </div>
                 <div>
                   <div class="font-medium">{{ i.name }}</div>
-                  <div class="text-sm text-gray-500">{{ i.genres }}</div>
+                  <div class="text-sm text-gray-500">{{ i.genres|join:", " }}</div>
                 </div>
               </div>
       
@@ -96,23 +74,54 @@
         {% endfor %}
       </div>
     </div>
-
+      
+    <div class="row-span-2 gap-8 flex flex-col">
+    <!-- Top Tracks -->
+    <div class="bg-black/30 rounded-2xl p-6">
+      <h2 class="text-xl font-bold mb-4">Top Tracks</h2>
+      <div class="space-y-4">
+        {% for t in user_music_profile.top_tracks|slice:":5" %}
+          <a href="https://open.spotify.com/track/{{ t.id }}" class="block" target="_blank"" >
+            <div class="flex flex-col sm:flex-row items-center sm:justify-between gap-4 sm:gap-0 hover:bg-black/40 transition rounded-xl p-2">
+              <div class="flex items-center gap-3 w-full sm:w-auto">
+                <span class="text-gray-500">{{ forloop.counter }}</span>
+                <div class="text-gray-500 flex-shrink-0">
+                <img
+                  src="{{ t.images.url }}"
+                  alt="{{ t.name }}"
+                  class="w-5 h-5 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full object-cover mx-auto"
+                />
+              </div>
+                <div>
+                  <div class="font-medium">{{ t.name }}</div>
+                  <div class="text-sm text-gray-500">{{ t.artists|join:", " }}</div>
+                </div>
+              </div>
+      
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
     <!-- Top Genres -->
     <div class="bg-black/30 rounded-2xl p-6">
       <h2 class="text-xl font-bold mb-4">Top Genres</h2>
       <div class="space-y-4">
+      {% for genre in user_music_profile.genres %}
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <span>Indie Pop</span>
+            <span>{{ genre.0 }}</span>
           </div>
-          <div class="text-sm text-gray-500">32% (150 songs)</div>
+          <div class="text-sm text-gray-500">{{ genre.1 }}%</div>
         </div>
         <div class="w-full bg-gray-800 rounded-full h-2">
-          <div class="bg-green-500 h-2 rounded-full" style="width: 32%"></div>
+          <div class="bg-green-500 h-2 rounded-full" style="width: {{ genre.1 }}%"></div>
         </div>
-        <!-- Add more genres similarly -->
+      {% endfor %}
       </div>
     </div>
+    </div>
+    
   </div>
 </div>
 {% endblock %}
