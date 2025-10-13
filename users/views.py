@@ -94,18 +94,6 @@ class SpotifyCallbackView(View):
                 token_expires_at=token_expires_at
             )
 
-        # Update or create user
-        user, _ = User.objects.update_or_create(
-            spotify_id=spotify_id,
-            defaults={
-                'username': username,
-                'email': email,
-                'access_token': access_token,
-                'refresh_token': refresh_token,
-                'token_expires_at': token_expires_at,
-            }
-        )
-
         refresh_user_profile(user)
         request.session['spotify_id'] = user.spotify_id
         return redirect('edit_profile', spotify_id=user.spotify_id)
@@ -149,6 +137,9 @@ class ProfileDetailView(View):
         current_user = get_current_user(request)
         user = get_object_or_404(User, spotify_id=spotify_id)
         user_music_profile = get_object_or_404(UserMusicProfile, user__spotify_id=spotify_id)
+        if not current_user:
+            return HttpResponse("Not logged in.", status=403)
+        
         if user.favorite_song:
             user.favorite_song = user.favorite_song.replace("open.spotify.com/track", "open.spotify.com/embed/track")
 
