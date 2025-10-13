@@ -1,37 +1,68 @@
-'''function for use'''
-import spotipy
-from .models import MutualPlaylist
+from users.spotify_utils import get_spotify_client
+from .models import MutualPlaylist, User
 
-def jaccard_similarity(set1, set2):
-    '''jaccard function for find simillarity'''
-    intersection = len(set(set1) & set(set2))
-    union = len(set(set1) | set(set2))
-    return intersection / union if union else 0
+def flatten_list(data):
+    """
+    Safely flattens a list of lists or returns the original list
+    if it's already flat. Ensures all items are strings.
+    """
+    if not data or not isinstance(data, list): return []
+    flat_list = []
+    for item in data:
+        if isinstance(item, list): flat_list.extend(str(sub_item) for sub_item in item)
+        else: flat_list.append(str(item))
+    return flat_list
 
-def create_mutual_playlist(user1, user2, playlist_name="Mutual Playlist"):
-    """Create a mutual playlist for two users."""
-    sp = spotipy.Spotify(auth=user1.access_token)
+def jaccard_similarity(list1, list2):
+    """Calculates the Jaccard similarity between two lists, handling potential nesting."""
+    set1 = set(flatten_list(list1))
+    set2 = set(flatten_list(list2))
+    intersection = len(set1.intersection(set2))
+    union = len(set1.union(set2))
+    return intersection / union if union else 0.0
 
-    # รวม top tracks ของทั้งสอง
-    user1_tracks = [top["id"] for top in user1.music_profile.top_tracks]
-    user2_tracks = [top["id"] for top in user2.music_profile.top_tracks]
 
-    track_ids = list(set(user1_tracks + user2_tracks))  # unique tracks
+def create_mutual_playlist(request, user1: User, user2: User):
+    """
+    Creates a mutual playlist on Spotify using a valid token, saves a record
+    locally, and returns the MutualPlaylist database object.
+    """
+    sp = get_spotify_client(request)
+    if not sp:
+        return None
 
-    # สร้าง playlist บน user1
-    playlist = sp.user_playlist_create(
-        user=user1.spotify_id,
-        name=playlist_name,
-        public=False,
-        description=f"Mutual playlist of {user1.username} & {user2.username}"
-    )
+    # Safely get the profile objects for each user
+    user1_profile = getattr(user1, 'music_profile', None)
+    user2_profile = getattr(user2, 'music_profile', None)
 
-    sp.playlist_add_items(playlist_id=playlist["id"], items=track_ids[:50])  # Spotify limit: 100
+    # Safely get the top tracks by accessing the attribute directly
+    user1_top_tracks = getattr(user1_profile, 'top_tracks', []) if user1_profile else []
+    user2_top_tracks = getattr(user2_profile, 'top_tracks', []) if user2_profile else []
 
-    mutual_playlist = MutualPlaylist.objects.create(
-        user=user1,
-        name=playlist["name"],
-        description=playlist.get("description", "")
-    ) # สร้าง mutual_playlist
+    user1_top_track_ids = {track['id'] for track in user1_top_tracks}
+    user2_top_track_ids = {track['id'] for track in user2_top_tracks}
+    
+    mutual_track_ids = list(user1_top_track_ids.intersection(user2_top_track_ids))
 
-    return mutual_playlist
+    if not mutual_track_ids:
+        return None
+
+    playlist_name = f"♫ {user1.username} & {user2.username}'s Mix"
+    playlist_description = f"Songs you both love. Matched on Resonance."
+    
+    try:
+        spotify_playlist = sp.user_playlist_create(
+            user=user1.spotify_id, name=playlist_name, public=False, description=playlist_description
+        )
+        sp.playlist_add_items(spotify_playlist["id"], mutual_track_ids[:100])
+        new_playlist_obj = MutualPlaylist.objects.create(
+            user=user1,
+            name=playlist_name,
+            description=playlist_description,
+            spotify_playlist_id=spotify_playlist["id"],
+            spotify_url=spotify_playlist["external_urls"]["spotify"]
+        )
+        return new_playlist_obj
+    except Exception as e:
+        print(f"Error creating playlist: {e}")
+        return None

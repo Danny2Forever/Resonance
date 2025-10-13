@@ -1,73 +1,83 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.views import View
-from users.models import User
-from .models import *
-from matching.service import jaccard_similarity, create_mutual_playlist
-from django.db.models import Q
 from django.http import JsonResponse
-import json
+from django.db.models import Q
+from users.models import User
+from .models import Swipe, Match
+from .service import jaccard_similarity, create_mutual_playlist
+from chat.models import Chat
+
 
 class MatchUserView(View):
     def get(self, request):
         spotify_id = request.session.get("spotify_id")
-        current_user = get_object_or_404(User, spotify_id=spotify_id)
-        candidates = []
+        # Use select_related to efficiently fetch the related music_profile in the same query
+        current_user = get_object_or_404(User.objects.select_related('music_profile'), spotify_id=spotify_id)
+        
+        swiped_user_ids = Swipe.objects.filter(swiper=current_user).values_list('swiped_id', flat=True)
 
-        # หาคนที่ current_user เคย swipe ไปแล้ว
-        swiped_ids = Swipe.objects.filter(swiper=current_user).values_list("swiped__spotify_id", flat=True)
+        # Fetch the music_profiles for all candidates to avoid extra queries in the loop
+        candidates = User.objects.exclude(id=current_user.id).exclude(id__in=swiped_user_ids).select_related('music_profile')
 
-        # filter เอาคนที่ยังไม่ถูก swipe
-        users_neverswiped = User.objects.filter(~Q(spotify_id=current_user.spotify_id)).exclude(
-            spotify_id__in=swiped_ids
-        )
+        candidate_scores = []
+        for user in candidates:
+            # Access attributes directly
+            # Provide default empty lists if a profile or its attributes don't exist
+            
+            user1_profile = getattr(current_user, 'music_profile', None)
+            user2_profile = getattr(user, 'music_profile', None)
 
-        # คำนวณ score จากความเหมือน genre, artist, track
-        for user in users_neverswiped:
-            genres_score = jaccard_similarity(current_user.music_profile.genres, user.music_profile.genres)
-            artists_score = jaccard_similarity(
-                [a["id"] for a in current_user.music_profile.top_artists],
-                [a["id"] for a in user.music_profile.top_artists]
-            )
-            tracks_score = jaccard_similarity(
-                [t["id"] for t in current_user.music_profile.top_tracks],
-                [t["id"] for t in user.music_profile.top_tracks]
-            )
+            # Safely access the attributes of the profile objects
+            genres1 = getattr(user1_profile, 'genres', []) if user1_profile else []
+            genres2 = getattr(user2_profile, 'genres', []) if user2_profile else []
+            
+            artists1 = [a['id'] for a in getattr(user1_profile, 'top_artists', [])] if user1_profile else []
+            artists2 = [a['id'] for a in getattr(user2_profile, 'top_artists', [])] if user2_profile else []
+
+            tracks1 = [t['id'] for t in getattr(user1_profile, 'top_tracks', [])] if user1_profile else []
+            tracks2 = [t['id'] for t in getattr(user2_profile, 'top_tracks', [])] if user2_profile else []
+
+            genres_score = jaccard_similarity(genres1, genres2)
+            artists_score = jaccard_similarity(artists1, artists2)
+            tracks_score = jaccard_similarity(tracks1, tracks2)
+            
             total_score = 0.3 * genres_score + 0.4 * artists_score + 0.3 * tracks_score
-            candidates.append({"user": user, "score": total_score})
+            candidate_scores.append({"user": user, "score": total_score})
 
-        # เรียงจากคะแนนมากไปน้อย
-        candidates.sort(key=lambda x: x["score"], reverse=True)
-        next_user = candidates[0]["user"] if candidates else None
+        candidate_scores.sort(key=lambda x: x["score"], reverse=True)
+        
+        next_user = candidate_scores[0]["user"] if candidate_scores else None
 
-        return render(request, "matching/match.html", {
-            "current_user": current_user,
-            "next_user": next_user,
-            "candidates": candidates,
-        })
+        return render(request, "matching/match.html", {"current_user": current_user, "next_user": next_user})
 
 class SwipeActionView(View):
     def post(self, request):
-        spotify_id = request.session.get("spotify_id")
-        current_user = get_object_or_404(User, spotify_id=spotify_id)
+        current_user = get_object_or_404(User, spotify_id=request.session.get("spotify_id"))
+        swiped_user = get_object_or_404(User, id=request.POST.get("swiped_id"))
+        action = request.POST.get("action")
 
-        swiped_id = request.POST.get("swiped_id")
-        action = request.POST.get("action")  # "like" หรือ "pass"
+        if Swipe.objects.filter(swiper=current_user, swiped=swiped_user).exists():
+            return JsonResponse({"error": "Already swiped"}, status=400)
 
-        swiped_user = get_object_or_404(User, id=swiped_id)
-
-        # บันทึก swipe
         Swipe.objects.create(swiper=current_user, swiped=swiped_user, action=action)
 
         if action == "like":
-            both_like = Swipe.objects.filter(
-                swiper=swiped_user, swiped=current_user, action="like"
-            ).exists()
-            if both_like:
-                playlist = create_mutual_playlist(current_user, swiped_user)
-                Match.objects.create(
+            if Swipe.objects.filter(swiper=swiped_user, swiped=current_user, action="like").exists():
+                playlist_obj = create_mutual_playlist(request, current_user, swiped_user)
+
+                new_match = Match.objects.create(
                     user1=current_user,
                     user2=swiped_user,
                     similarity_score=0,
-                    mutual_playlist=playlist
+                    mutual_playlist=playlist_obj
                 )
-        return redirect("match_user")
+                Chat.objects.create(match=new_match)
+
+                match_details = {
+                    "matched_user_name": swiped_user.username,
+                    "matched_user_avatar": swiped_user.profile_picture.url if swiped_user.profile_picture else None,
+                    "playlist_url": playlist_obj.spotify_url if playlist_obj else None
+                }
+                return JsonResponse({"matched": True, "match_details": match_details})
+
+        return JsonResponse({"matched": False})
