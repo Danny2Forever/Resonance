@@ -42,5 +42,5 @@ urlpatterns = [
     path('swiped/', SwipeActionView.as_view(), name='swipe_action'),
     path('chat/', include('chat.urls')),
     path("dashboard/", AdminDashboardView.as_view(), name="admin_dashboard"),
-    
+    path('', include('matching.urls')),
 ]

@@ -1,0 +1,35 @@
+<div class="bg-card border border-white/10 rounded-xl p-6 hover:border-green-500/50 transition-colors group">
+  <div class="flex items-start gap-6">
+    <a href="{% url 'profile_detail' matched_user.spotify_id %}">
+      <img
+        src="{{ matched_user.profile_picture.url|default:'/static/images/placeholder-user.jpg' }}"
+        alt="{{ matched_user.username }}"
+        class="w-24 h-24 rounded-xl object-cover flex-shrink-0"
+      />
+    </a>
+
+    <div class="flex-1 min-w-0">
+      <div class="flex items-start justify-between gap-4 mb-3">
+        <div>
+          <h3 class="text-xl font-semibold mb-1 group-hover:text-green-400 transition-colors">{{ matched_user.username }}</h3>
+          <p class="text-sm text-gray-400 line-clamp-2">{{ matched_user.bio|default:'No bio yet.' }}</p>
+        </div>
+        <div class="text-right flex-shrink-0">
+          <div class="text-3xl font-bold text-green-400">{{ match.similarity_score|floatformat:0 }}%</div>
+          <p class="text-xs text-gray-500">Match</p>
+        </div>
+      </div>
+
+      <div class="flex gap-2 mt-4">
+        <a href="{% url 'chat_page' %}?match_id={{ match.id }}" class="flex-1 text-center bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm">
+          Message
+        </a>
+        {% if match.mutual_playlist and match.mutual_playlist.spotify_url %}
+          <a href="{{ match.mutual_playlist.spotify_url }}" target="_blank" class="flex-1 text-center bg-green-600 hover:bg-green-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm">
+            Playlist
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
