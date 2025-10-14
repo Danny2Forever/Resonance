@@ -15,6 +15,20 @@ class User(models.Model):
     refresh_token = models.CharField(max_length=500, blank=True, null=True)
     token_expires_at = models.DateTimeField(max_length=255, blank=True, null=True)
 
+
+    @property
+    def is_authenticated(self):
+        return True
+
+    @property
+    def is_anonymous(self):
+        return False
+
+    @property
+    def is_active(self):
+        return True
+
+
     swipes = models.ManyToManyField(
         'self',
         through='matching.Swipe',

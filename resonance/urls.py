@@ -28,6 +28,9 @@ from django.shortcuts import render
 def landing_page(request):
     return render(request, "landing.html")
 
+def test_chat_view(request):
+    return render(request, 'chat/chat.html')
+
 urlpatterns = [
     path('', LandingPageView.as_view(), name='landing'),
     path('login/', SpotifyLoginView.as_view(), name='spotify_login'),
