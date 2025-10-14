@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.http import JsonResponse
 from django.db.models import Q
+from django.contrib.auth.mixins import LoginRequiredMixin
 from users.models import User
 from .models import Swipe, Match
 from .service import jaccard_similarity, create_mutual_playlist
@@ -88,3 +89,17 @@ class SwipeActionView(View):
                 return JsonResponse({"matched": True, "match_details": match_details})
 
         return JsonResponse({"matched": False})
+    
+class MatchListView(LoginRequiredMixin, View):
+    def get(self, request):
+        # Get all Match objects where the current user is either user1 or user2.
+        # We use select_related to efficiently fetch the related user and playlist
+        # data in a single database query, which is very good for performance.
+        matches = Match.objects.filter(
+            Q(user1=request.user) | Q(user2=request.user)
+        ).select_related('user1', 'user2', 'mutual_playlist')
+
+        context = {
+            'matches': matches
+        }
+        return render(request, 'matching/my_match.html', context)

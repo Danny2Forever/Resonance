@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+
+{% block title %}My Matches{% endblock %}
+
+{% block content %}
+<div class="container max-w-6xl mx-auto px-4 py-8">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold tracking-tight mb-2">Your Matches</h1>
+    <p class="text-gray-400">People who share your music taste</p>
+  </div>
+
+  {% if matches %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      
+      {% for match in matches %}
+        {# This logic figures out who the *other* user is in the match object #}
+        {% if match.user1 == request.user %}
+          {% with matched_user=match.user2 %}
+            {% include 'matching/partials/match_card.html' %}
+          {% endwith %}
+        {% else %}
+          {% with matched_user=match.user1 %}
+            {% include 'matching/partials/match_card.html' %}
+          {% endwith %}
+        {% endif %}
+      {% endfor %}
+
+    </div>
+  {% else %}
+    {# This is the "No matches yet" state from your reference file #}
+    <div class="text-center py-16 bg-[#181818] rounded-xl">
+      <div class="w-16 h-16 rounded-full bg-gray-700 mx-auto mb-4 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      </div>
+      <h3 class="text-lg font-semibold mb-2">No matches yet</h3>
+      <p class="text-sm text-gray-400 mb-6">Start swiping to find people with similar music taste</p>
+      <a href="{% url 'match_user' %}" class="inline-block bg-green-500 text-white font-bold py-2 px-4 rounded-full hover:bg-green-600 transition-colors">
+        Start Discovering
+      </a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
