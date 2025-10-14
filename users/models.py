@@ -18,7 +18,7 @@ class User(models.Model):
     swipes = models.ManyToManyField(
         'self',
         through='matching.Swipe',
-        symmetrical=False,
+        symmetrical=False, # ถ้า A swipe B ไม่ได้หมายความว่า B swipe A
         related_name='swiped_by'
     )
 

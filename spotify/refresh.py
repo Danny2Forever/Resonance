@@ -1,5 +1,3 @@
-import spotipy
-from django.utils import timezone
 from .models import UserMusicProfile
 from collections import Counter
 
