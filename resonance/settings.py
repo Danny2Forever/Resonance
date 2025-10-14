@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "crispy_tailwind",
     'storages',
     'admin_dashboard',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -169,3 +170,10 @@ STORAGES = {
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
 CRISPY_TEMPLATE_PACK = "tailwind"
+
+AUTHENTICATION_BACKENDS = [
+    'users.backends.SpotifyBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+LOGIN_URL = 'spotify_login'

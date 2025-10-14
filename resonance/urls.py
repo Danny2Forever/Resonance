@@ -40,8 +40,7 @@ urlpatterns = [
     path('logout/', SpotifyLogoutView.as_view(), name='spotify_logout'),
     path('match/', MatchUserView.as_view(), name='match_user'),
     path('swiped/', SwipeActionView.as_view(), name='swipe_action'),
-    # path('chat/', include('chat.urls')),
-    path('chat/', test_chat_view, name='chat_test_page'),
+    path('chat/', include('chat.urls')),
     path("dashboard/", AdminDashboardView.as_view(), name="admin_dashboard"),
     
 ]

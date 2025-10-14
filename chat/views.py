@@ -1,69 +1,55 @@
-# from django.shortcuts import render
-# from django.db import models
-# from django.contrib.auth.models import User, Matching
-# from django.http import JsonResponse
-# from .models import Message
-
-# class Chat(models.Model):
-#     match = models.OneToOneField(Match, on_delete=models.CASCADE)
-#     created_at = models.DateTimeField(auto_now_add=True)
-
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.timezone import now
-from django.shortcuts import get_object_or_404
-from django.views.decorators.http import require_http_methods
-import json
-
-from .models import Chat, Message
-from users.models import User
+from django.shortcuts import get_object_or_404, render
+from rest_framework.decorators import api_view, permission_classes
+from django.contrib.auth.decorators import login_required
+from rest_framework.permissions import IsAuthenticated
+from django.db.models import Q
+from rest_framework.response import Response
+from rest_framework import status
 from matching.models import Match
 
+# Import our new custom permission
+from .permissions import IsUserInChat
+from .models import Chat
+from .serializers import MessageSerializer
 
-# List all messages in a chat
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsUserInChat])
 def chat_detail(request, chat_id):
+
     chat = get_object_or_404(Chat, id=chat_id)
-    messages = chat.messages.order_by("sent_at").values(
-        "id", "sender_id", "content", "message_type", "shared_item_id", "sent_at"
-    )
-    return JsonResponse({"chat_id": chat.id, "messages": list(messages)})
 
 
-# Send a message in a chat
-@csrf_exempt
-@require_http_methods(["POST"])
+    messages = chat.messages.all().order_by('sent_at')
+    serializer = MessageSerializer(messages, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsUserInChat])
 def send_message(request, chat_id):
+
     chat = get_object_or_404(Chat, id=chat_id)
+    serializer = MessageSerializer(data=request.data)
 
-    try:
-        data = json.loads(request.body)
-        sender_id = data.get("sender_id")
-        content = data.get("content")
-        message_type = data.get("message_type", "text")
-        shared_item_id = data.get("shared_item_id")
+    if serializer.is_valid(raise_exception=True):
+        serializer.save(chat=chat, sender=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        sender = get_object_or_404(User, id=sender_id)
+@login_required
+def chat_list_view(request):
+    user_matches = Match.objects.filter(
+        Q(user1=request.user) | Q(user2=request.user)
+    ).select_related('user1', 'user2', 'chat').order_by('-matched_at')
 
-        message = Message.objects.create(
-            chat=chat,
-            sender=sender,
-            content=content,
-            message_type=message_type,
-            shared_item_id=shared_item_id,
-            sent_at=now(),
-        )
+    chat_list = []
+    for match in user_matches:
+        other_user = match.user2 if match.user1 == request.user else match.user1
+        chat_id = match.chat.id if hasattr(match, 'chat') else None
+        if chat_id:
+            chat_list.append({
+                'chat_id': chat_id,
+                'other_user': other_user,
+            })
 
-        return JsonResponse(
-            {
-                "id": message.id,
-                "chat_id": chat.id,
-                "sender_id": sender.id,
-                "content": message.content,
-                "message_type": message.message_type,
-                "shared_item_id": message.shared_item_id,
-                "sent_at": message.sent_at,
-            },
-            status=201,
-        )
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=400)
+    context = {'chat_list': chat_list}
+    return render(request, 'chat/chat.html', context)
