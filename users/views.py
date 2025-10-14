@@ -81,7 +81,7 @@ class SpotifyCallbackView(View):
             user.refresh_token = refresh_token
             user.token_expires_at = token_expires_at
             user.save()
-            refresh_user_profile(user)
+            refresh_user_profile(request)
             request.session['spotify_id'] = user.spotify_id # เก็บ spotify_id ลง session
             return redirect('profile_detail', spotify_id=user.spotify_id)
         except User.DoesNotExist:
@@ -103,8 +103,9 @@ class EditProfileView(View):
     def get(self, request, spotify_id):
         user = get_object_or_404(User, spotify_id=spotify_id)
         current_user = get_current_user(request)
-        if not current_user or current_user.spotify_id != user.spotify_id:
-            return HttpResponse("Not authorized to edit this profile.", status=403)
+        if not current_user.is_admin:
+            if not current_user or current_user.spotify_id != user.spotify_id:
+                return HttpResponse("Not authorized to edit this profile.", status=403)
         
         form = UserForm(instance=user)
         return render(request, 'profile/edit_profile.html', {'form': form, 'current_user': current_user})

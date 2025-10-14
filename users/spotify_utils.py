@@ -29,7 +29,7 @@ def get_spotify_client(request):
         now = datetime.now(tz=timezone.utc)
         time_range = ((now-expires_at).total_seconds()/60)
         # print(type(expires_at), expires_at)  # Debugging line
-        is_expired = time_range >= 60 # หมดอายุเกิน 60 นาที
+        is_expired = now >= expires_at # หมดอายุเกิน 60 นาที
 
         if is_expired:
             sp_oauth = SpotifyOAuth(
