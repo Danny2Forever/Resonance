@@ -113,8 +113,9 @@ class EditProfileView(View):
     def post(self, request, spotify_id):
         user = get_object_or_404(User, spotify_id=spotify_id)
         current_user = get_current_user(request)
-        if not current_user or current_user.spotify_id != user.spotify_id:
-            return HttpResponse("Not authorized to edit this profile.", status=403)
+        if not current_user.is_admin:
+            if not current_user or current_user.spotify_id != user.spotify_id:
+                return HttpResponse("Not authorized to edit this profile.", status=403)
 
         form = UserForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
