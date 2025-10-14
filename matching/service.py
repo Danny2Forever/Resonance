@@ -36,8 +36,8 @@ def create_mutual_playlist(request, user1: User, user2: User):
         return None
 
     # Safely get the profile objects for each user
-    user1_profile = getattr(user1, 'music_profile', None)
-    user2_profile = getattr(user2, 'music_profile', None)
+    user1_profile = user1.usermusicprofile
+    user2_profile = user1.usermusicprofile
 
     # Safely get the top tracks by accessing the attribute directly
     user1_top_tracks = getattr(user1_profile, 'top_tracks', []) if user1_profile else []
@@ -45,7 +45,6 @@ def create_mutual_playlist(request, user1: User, user2: User):
 
     user1_top_track_ids = {track['id'] for track in user1_top_tracks}
     user2_top_track_ids = {track['id'] for track in user2_top_tracks}
-    
     mutual_track_ids = list(user1_top_track_ids.intersection(user2_top_track_ids))
 
     if not mutual_track_ids:
@@ -53,7 +52,6 @@ def create_mutual_playlist(request, user1: User, user2: User):
 
     playlist_name = f"♫ {user1.username} & {user2.username}'s Mix"
     playlist_description = f"Songs you both love. Matched on Resonance."
-    
     try:
         spotify_playlist = sp.user_playlist_create(
             user=user1.spotify_id, name=playlist_name, public=False, description=playlist_description
