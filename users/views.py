@@ -89,6 +89,7 @@ class EditProfileView(LoginRequiredMixin, UserPassesTestMixin, View):
         form = UserForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
             form.save()
+            refresh_user_profile(request)
             return redirect('profile_detail', spotify_id=user.spotify_id)
         return render(request, 'profile/edit_profile.html', {'form': form})
 

@@ -26,29 +26,30 @@
         <p class="text-lg text-gray-200 mt-2 line-clamp-3">{{ next_user.bio }}</p>
         {% endif %}
       </div>
+
       <!-- Favorite Genres -->
-      {% if next_user.music_profile.genres %}
+      {% if next_user.usermusicprofile.genres %}
       <div class="mb-4">
         <div class="flex items-center gap-2 mb-2">
           <span class="text-sm font-semibold text-primary">Favorite Genres</span>
         </div>
         <div class="flex flex-wrap gap-2">
-          {% for g in next_user.music_profile.genres|slice:":5" %}
+          {% for g in next_user.usermusicprofile.genres|slice:":5" %}
           <span class="backdrop-blur-xl bg-primary/20 border border-primary/30 text-foreground px-3 py-1 rounded-full text-xs font-medium">
-            {{ g }}
+            {{ g.0 }}
           </span>
           {% endfor %}
         </div>
       </div>
       {% endif %}
       <!-- Top Songs -->
-      {% if next_user.music_profile.top_tracks %}
+      {% if next_user.usermusicprofile.top_tracks %}
       <div class="backdrop-blur-xl bg-background/40 rounded-2xl p-4 border border-border/50 mb-4">
         <div class="flex items-center gap-2 mb-3">
           <span class="text-sm font-semibold text-primary">Top Songs</span>
         </div>
         <div class="space-y-2 max-h-40 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-600/50">
-          {% for t in next_user.music_profile.top_tracks %}
+          {% for t in next_user.usermusicprofile.top_tracks %}
           <div class="flex items-center gap-3">
             <span class="text-xs text-gray-400 w-4">{{ forloop.counter }}</span>
             <div class="flex-1 min-w-0">

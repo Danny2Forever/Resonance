@@ -7,44 +7,46 @@ from .models import Swipe, Match
 from .service import jaccard_similarity, create_mutual_playlist
 from chat.models import Chat
 
+from spotify.refresh import refresh_user_profile
+
 
 class MatchUserView(View):
     def get(self, request):
         spotify_id = request.session.get("spotify_id")
-        # Use select_related to efficiently fetch the related music_profile in the same query
-        current_user = get_object_or_404(User.objects.select_related('music_profile'), spotify_id=spotify_id)
-        
+        refresh_user_profile(request)
+        # ใช้ related เพื้่อง่ายต่อการหา user music profile
+        current_user = get_object_or_404(User.objects.select_related('usermusicprofile'), spotify_id=spotify_id)
         swiped_user_ids = Swipe.objects.filter(swiper=current_user).values_list('swiped_id', flat=True)
 
-        # Fetch the music_profiles for all candidates to avoid extra queries in the loop
-        candidates = User.objects.exclude(id=current_user.id).exclude(id__in=swiped_user_ids).select_related('music_profile')
+        # เอา user ที่เป็น current_user เคย swipe แล้วออก
+        candidates = User.objects.exclude(id=current_user.id).exclude(id__in=swiped_user_ids).select_related('usermusicprofile')
 
         candidate_scores = []
         for user in candidates:
-            # Access attributes directly
-            # Provide default empty lists if a profile or its attributes don't exist
-            
-            user1_profile = getattr(current_user, 'music_profile', None)
-            user2_profile = getattr(user, 'music_profile', None)
+
+            user1_profile = current_user.usermusicprofile
+            user2_profile = user.usermusicprofile
 
             # Safely access the attributes of the profile objects
-            genres1 = getattr(user1_profile, 'genres', []) if user1_profile else []
-            genres2 = getattr(user2_profile, 'genres', []) if user2_profile else []
+            genres1 = user1_profile.genres if user1_profile else []  
+            genres2 = user2_profile.genres if user2_profile else []
             
-            artists1 = [a['id'] for a in getattr(user1_profile, 'top_artists', [])] if user1_profile else []
-            artists2 = [a['id'] for a in getattr(user2_profile, 'top_artists', [])] if user2_profile else []
+            artists1 = [a['id'] for a in user1_profile.top_artists] if user1_profile else []
+            artists2 = [a['id'] for a in user2_profile.top_artists] if user2_profile else []
 
-            tracks1 = [t['id'] for t in getattr(user1_profile, 'top_tracks', [])] if user1_profile else []
-            tracks2 = [t['id'] for t in getattr(user2_profile, 'top_tracks', [])] if user2_profile else []
+            tracks1 = [t['id'] for t in user1_profile.top_tracks] if user1_profile else []
+            tracks2 = [t['id'] for t in user2_profile.top_tracks] if user2_profile else []
 
             genres_score = jaccard_similarity(genres1, genres2)
             artists_score = jaccard_similarity(artists1, artists2)
             tracks_score = jaccard_similarity(tracks1, tracks2)
             
+            # ค่าน้ำหนักของแต่ละส่วน
             total_score = 0.3 * genres_score + 0.4 * artists_score + 0.3 * tracks_score
             candidate_scores.append({"user": user, "score": total_score})
 
         candidate_scores.sort(key=lambda x: x["score"], reverse=True)
+        print(candidate_scores)
         
         next_user = candidate_scores[0]["user"] if candidate_scores else None
 
@@ -75,6 +77,7 @@ class SwipeActionView(View):
                     similarity_score=similarity_score,
                     mutual_playlist=playlist_obj
                 )
+                
                 Chat.objects.create(match=new_match)
 
                 match_details = {
