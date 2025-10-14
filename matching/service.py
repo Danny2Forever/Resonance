@@ -5,7 +5,6 @@ def flatten_list(data):
     '''แปลงรายการที่อาจมีการซ้อนกัน [[1], 2, [3, 4]] เป็น [1, 2, 3, 4]'''
     if not data or not isinstance(data, list):
         return []
-
     flat_list = []
     for item in data:
         if isinstance(item, list):
@@ -19,7 +18,9 @@ def flatten_list(data):
 def jaccard_similarity(list1, list2):
     """Calculates the Jaccard similarity between two lists, handling potential nesting."""
     set1 = set(flatten_list(list1))
+    # print(set1)
     set2 = set(flatten_list(list2))
+    # print(set2)
     intersection = len(set1.intersection(set2))
     union = len(set1.union(set2))
     return intersection / union if union else 0.0

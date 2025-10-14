@@ -81,7 +81,7 @@ class SpotifyCallbackView(View):
             user.refresh_token = refresh_token
             user.token_expires_at = token_expires_at
             user.save()
-            refresh_user_profile(user)
+            refresh_user_profile(request)
             request.session['spotify_id'] = user.spotify_id # เก็บ spotify_id ลง session
             return redirect('profile_detail', spotify_id=user.spotify_id)
         except User.DoesNotExist:
@@ -93,40 +93,33 @@ class SpotifyCallbackView(View):
                 refresh_token=refresh_token,
                 token_expires_at=token_expires_at
             )
-
-        refresh_user_profile(user)
+        
+        refresh_user_profile(request)
         request.session['spotify_id'] = user.spotify_id
         return redirect('edit_profile', spotify_id=user.spotify_id)
 
 # Edit profile
 class EditProfileView(View):
-    def valid_user(self, request, spotify_id):
+    def get(self, request, spotify_id):
         user = get_object_or_404(User, spotify_id=spotify_id)
         current_user = get_current_user(request)
-
-        if not current_user:
-            return None, None, HttpResponse("Not logged in.", status=403)
-        if current_user.spotify_id != user.spotify_id and not current_user.is_admin:
-            return None, None, HttpResponse("You don't have permission to edit this profile.", status=403)
-
-        return user, current_user, None
-
-    def get(self, request, spotify_id):
-        user, current_user, error = self.valid_user(request, spotify_id)
-        if error:
-            return error
-
+        if not current_user.is_admin:
+            if not current_user or current_user.spotify_id != user.spotify_id:
+                return HttpResponse("Not authorized to edit this profile.", status=403)
+        
         form = UserForm(instance=user)
         return render(request, 'profile/edit_profile.html', {'form': form, 'current_user': current_user})
 
     def post(self, request, spotify_id):
-        user, current_user, error = self.valid_user(request, spotify_id)
-        if error:
-            return error
+        user = get_object_or_404(User, spotify_id=spotify_id)
+        current_user = get_current_user(request)
+        if not current_user or current_user.spotify_id != user.spotify_id:
+            return HttpResponse("Not authorized to edit this profile.", status=403)
 
         form = UserForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
             form.save()
+            refresh_user_profile(request)
             return redirect('profile_detail', spotify_id=user.spotify_id)
 
         return render(request, 'profile/edit_profile.html', {'form': form, 'current_user': current_user})
@@ -148,6 +141,7 @@ class ProfileDetailView(View):
             'current_user': current_user,
             'user_music_profile': user_music_profile,
         })
+
 
 # Logout
 class SpotifyLogoutView(View):
