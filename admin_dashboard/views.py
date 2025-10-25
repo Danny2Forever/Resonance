@@ -26,6 +26,7 @@ class AdminDashboardView(View):
         )
         swipes_paginator = Paginator(recent_swipes, 10)  # 10 per page
         swipes_page_number = request.GET.get("swipe_page", 1)
+        # print(swipes_paginator.get_page(2)[0])
         swipes_page_obj = swipes_paginator.get_page(swipes_page_number)
 
         # Recent Matches (latest 50)

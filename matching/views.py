@@ -7,9 +7,8 @@ from users.models import User
 from .models import Swipe, Match
 from .service import jaccard_similarity, create_mutual_playlist
 from chat.models import Chat
-
+from users.service import get_current_user
 from spotify.refresh import refresh_user_profile
-
 
 class MatchUserView(View):
     def get(self, request):
@@ -17,9 +16,9 @@ class MatchUserView(View):
         refresh_user_profile(request)
         # ใช้ related เพื้่อง่ายต่อการหา user music profile
         current_user = get_object_or_404(User.objects.select_related('usermusicprofile'), spotify_id=spotify_id)
-        swiped_user_ids = Swipe.objects.filter(swiper=current_user).values_list('swiped_id', flat=True)
-
+        
         # เอา user ที่เป็น current_user เคย swipe แล้วออก
+        swiped_user_ids = Swipe.objects.filter(swiper=current_user).values_list('swiped_id', flat=True)
         candidates = User.objects.exclude(id=current_user.id).exclude(id__in=swiped_user_ids).select_related('usermusicprofile')
 
         candidate_scores = []
@@ -49,13 +48,12 @@ class MatchUserView(View):
         candidate_scores.sort(key=lambda x: x["score"], reverse=True)
         print(candidate_scores)
         
-        next_user = candidate_scores[0]["user"] if candidate_scores else None
-
-        return render(request, "matching/match.html", {"current_user": current_user, "next_user": next_user})
+        swipe_user = candidate_scores[0]["user"] if candidate_scores else None
+        return render(request, "matching/match.html", {"next_user": swipe_user})
 
 class SwipeActionView(View):
     def post(self, request):
-        current_user = get_object_or_404(User, spotify_id=request.session.get("spotify_id"))
+        current_user = get_current_user(request)
         swiped_user = get_object_or_404(User, id=request.POST.get("swiped_id"))
         action = request.POST.get("action")
 
@@ -71,16 +69,13 @@ class SwipeActionView(View):
         if action == "like":
             if Swipe.objects.filter(swiper=swiped_user, swiped=current_user, action="like").exists():
                 playlist_obj = create_mutual_playlist(request, current_user, swiped_user)
-
                 new_match = Match.objects.create(
                     user1=current_user,
                     user2=swiped_user,
                     similarity_score=similarity_score,
                     mutual_playlist=playlist_obj
                 )
-                
                 Chat.objects.create(match=new_match)
-
                 match_details = {
                     "matched_user_name": swiped_user.username,
                     "matched_user_avatar": swiped_user.profile_picture.url if swiped_user.profile_picture else None,
@@ -92,9 +87,6 @@ class SwipeActionView(View):
     
 class MatchListView(LoginRequiredMixin, View):
     def get(self, request):
-        # Get all Match objects where the current user is either user1 or user2.
-        # We use select_related to efficiently fetch the related user and playlist
-        # data in a single database query, which is very good for performance.
         matches = Match.objects.filter(
             Q(user1=request.user) | Q(user2=request.user)
         ).select_related('user1', 'user2', 'mutual_playlist')

@@ -77,9 +77,9 @@
               href="{% url 'profile_detail' user.spotify_id %}"
               class="w-full h-12 px-4 flex items-center justify-start gap-3 text-base rounded-lg {% if request.resolver_match.url_name == 'profile_detail' %}bg-gray-700 text-white shadow-lg{% else %}text-gray-400 hover:bg-gray-800 hover:text-white{% endif %} transition-colors"
             >
-              {% if user.profile_picture %}
+              {% if current_user.profile_picture %}
                 <img
-                  src="{{ user.profile_picture.url }}"
+                  src="{{ current_user.profile_picture.url }}"
                   alt="Profile"
                   class="w-8 h-8 rounded-full object-cover"
                 />

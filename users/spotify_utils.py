@@ -27,7 +27,7 @@ def get_spotify_client(request):
 
         # check token expired
         now = datetime.now(tz=timezone.utc)
-        time_range = ((now-expires_at).total_seconds()/60)
+
         # print(type(expires_at), expires_at)  # Debugging line
         is_expired = now >= expires_at # หมดอายุเกิน 60 นาที
 
@@ -39,13 +39,12 @@ def get_spotify_client(request):
                 scope="user-read-email user-read-private user-top-read playlist-modify-private playlist-modify-public"
             )
             
-
             new_token_info = sp_oauth.refresh_access_token(token_info['refresh_token'])
 
             # อัปเดตข้อมูล token ในฐานข้อมูล
             user.access_token = new_token_info['access_token']
             user.refresh_token = new_token_info.get('refresh_token', user.refresh_token)
-            print(type(new_token_info['expires_at'])) # timestamp
+            # print(type(new_token_info['expires_at'])) # timestamp
             user.token_expires_at = datetime.fromtimestamp(new_token_info['expires_at'], tz=timezone.utc)
             user.save()
             

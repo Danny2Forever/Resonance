@@ -12,6 +12,7 @@ import spotipy
 from django.utils import timezone
 from django.contrib.auth import login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from users.service import get_current_user
 
 class SpotifyLoginView(View):
     def get(self, request):
@@ -67,6 +68,7 @@ class SpotifyCallbackView(View):
         )
         
         refresh_user_profile(user)
+        request.session['spotify_id'] = user.spotify_id
         login(request, user, backend='users.backends.SpotifyBackend')
         
         if created:
@@ -74,18 +76,24 @@ class SpotifyCallbackView(View):
         else:
             return redirect('profile_detail', spotify_id=user.spotify_id)
 
-class EditProfileView(LoginRequiredMixin, UserPassesTestMixin, View):
-    def test_func(self):
-        user_to_edit = get_object_or_404(User, spotify_id=self.kwargs['spotify_id'])
-        return (self.request.user.spotify_id == user_to_edit.spotify_id) or self.request.user.is_admin
-
+class EditProfileView(View):
     def get(self, request, spotify_id):
         user = get_object_or_404(User, spotify_id=spotify_id)
+        current_user = get_current_user(request)
+        if not current_user.is_admin:
+            if not current_user or current_user.spotify_id != user.spotify_id:
+                return HttpResponse("Not authorized to edit this profile.", status=403)
+            
         form = UserForm(instance=user)
         return render(request, 'profile/edit_profile.html', {'form': form})
 
     def post(self, request, spotify_id):
         user = get_object_or_404(User, spotify_id=spotify_id)
+        current_user = get_current_user(request)
+        if not current_user.is_admin:
+            if not current_user or current_user.spotify_id != user.spotify_id:
+                return HttpResponse("Not authorized to edit this profile.", status=403)
+
         form = UserForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
             form.save()
@@ -95,14 +103,14 @@ class EditProfileView(LoginRequiredMixin, UserPassesTestMixin, View):
 
 class ProfileDetailView(LoginRequiredMixin, View):
     def get(self, request, spotify_id):
-        user_to_view = get_object_or_404(User, spotify_id=spotify_id)
+        user = get_object_or_404(User, spotify_id=spotify_id)
         user_music_profile = get_object_or_404(UserMusicProfile, user__spotify_id=spotify_id)
 
-        if user_to_view.favorite_song:
-            user_to_view.favorite_song = user_to_view.favorite_song.replace("open.spotify.com/track", "open.spotify.com/embed/track")
+        if user.favorite_song:
+            user.favorite_song = user.favorite_song.replace("open.spotify.com/track", "open.spotify.com/embed/track")
 
         return render(request, 'profile/profile_detail.html', {
-            'user': user_to_view,
+            'user': user,
             'user_music_profile': user_music_profile,
         })
 
